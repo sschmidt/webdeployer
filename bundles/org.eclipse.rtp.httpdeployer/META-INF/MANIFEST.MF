@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: HttpDeployer
+Bundle-SymbolicName: org.eclipse.rtp.httpdeployer;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: org.eclipse.rtp.httpdeployer.internal.Activator
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Import-Package: javax.servlet,
+ javax.servlet.http,
+ org.jdom,
+ org.jdom.output,
+ org.osgi.framework;version="1.3.0",
+ org.osgi.service.http;version="1.2.1"
+Require-Bundle: org.eclipse.osgi
+Export-Package: org.eclipse.rtp.httpdeployer.servlets.bundles
