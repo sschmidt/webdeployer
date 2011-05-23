@@ -8,31 +8,63 @@
  ******************************************************************************/
 package org.eclipse.rtp.httpdeployer.internal;
 
+import org.eclipse.equinox.p2.core.IProvisioningAgent;
+import org.eclipse.equinox.p2.engine.IProfileRegistry;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.util.tracker.ServiceTracker;
 
 public class Activator implements BundleActivator {
 
-	private static BundleContext context;
+	public static final String DEFAULT_PROFILE_ID = "_HTTPDEPLOY_";
+	private static Activator activator = null;
+	private ServiceTracker<IProvisioningAgent, IProvisioningAgent> PAServiceTracker;
 
-	public static BundleContext getContext() {
+	private BundleContext context;
+	private IProvisioningAgent provisioningAgent;
+	private IProfileRegistry profileRegistry;
+
+	public BundleContext getContext() {
 		return context;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
-	 */
-	public void start(BundleContext bundleContext) throws Exception {
-		Activator.context = bundleContext;
+	public IProvisioningAgent getProvisioningAgent() {
+		return provisioningAgent;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
+	public IProfileRegistry getProfileRegistry() {
+		return profileRegistry;
+	}
+
+	public void start(BundleContext bundleContext) throws Exception {
+		Activator.setInstance(this);
+		getInstance().context = bundleContext;
+
+		ProvisioningAgentServiceTracker PAServiceTrackerImpl = new ProvisioningAgentServiceTracker(this);
+		PAServiceTracker = new ServiceTracker<IProvisioningAgent, IProvisioningAgent>(bundleContext,
+				IProvisioningAgent.SERVICE_NAME, PAServiceTrackerImpl);
+		PAServiceTracker.open();
+	}
+
+	public static Activator getInstance() {
+		return activator;
+	}
+
+	public void setProvisioningAgent(IProvisioningAgent provisioningAgent) {
+		this.provisioningAgent = provisioningAgent;
+	}
+
+	public void setProfileRegistry(IProfileRegistry profileRegistry) {
+		this.profileRegistry = profileRegistry;
+	}
+
+	private static void setInstance(Activator newActivator) {
+		activator = newActivator;
+	}
+
 	public void stop(BundleContext bundleContext) throws Exception {
-		Activator.context = null;
+		getInstance().context = null;
+		PAServiceTracker.close();
 	}
 
 }
