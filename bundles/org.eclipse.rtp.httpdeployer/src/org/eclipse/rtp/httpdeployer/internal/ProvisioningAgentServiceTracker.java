@@ -14,6 +14,12 @@ import org.eclipse.equinox.p2.engine.IProfileRegistry;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
+/*
+ * TODO: DS is for avoiding writing code that uses the framework explicitly.
+ * 
+ * I think you can simply avoid this tracker by using ds and set the ference policy to dynamic and the 
+ * cardinality to 1..n.
+ */
 public class ProvisioningAgentServiceTracker implements
 		ServiceTrackerCustomizer<IProvisioningAgent, IProvisioningAgent> {
 
@@ -45,6 +51,10 @@ public class ProvisioningAgentServiceTracker implements
 		}
 	}
 
+	/*
+	 * TODO: See what I mean? Here you have to override a method which is not used. This doesn't happen
+	 * when using ds
+	 */
 	@Override
 	public void modifiedService(ServiceReference<IProvisioningAgent> reference, IProvisioningAgent service) {
 

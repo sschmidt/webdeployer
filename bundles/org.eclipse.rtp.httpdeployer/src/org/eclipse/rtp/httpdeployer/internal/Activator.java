@@ -41,11 +41,17 @@ public class Activator implements BundleActivator {
 		getInstance().context = bundleContext;
 
 		ProvisioningAgentServiceTracker PAServiceTrackerImpl = new ProvisioningAgentServiceTracker(this);
+		/*
+		 * TODO: You should be able to reference this service via ds as well.
+		 */
 		PAServiceTracker = new ServiceTracker<IProvisioningAgent, IProvisioningAgent>(bundleContext,
 				IProvisioningAgent.SERVICE_NAME, PAServiceTrackerImpl);
 		PAServiceTracker.open();
 	}
 
+	/*
+	 * TODO: Move static methods and variables to the top
+	 */
 	public static Activator getInstance() {
 		return activator;
 	}

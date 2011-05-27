@@ -8,6 +8,11 @@
  ******************************************************************************/
 package org.eclipse.rtp.httpdeployer.repository;
 
+/*
+ * TODO: RepositoryExeption is not a good name. I mean, compare it to FileNotFoundException.
+ * With this name you see that a file was not found. What info do you get from the name
+ * RepositoryException?
+ */
 public class RepositoryException extends Exception {
 
 	private static final long serialVersionUID = 1L;

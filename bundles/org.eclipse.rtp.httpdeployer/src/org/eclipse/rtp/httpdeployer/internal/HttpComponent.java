@@ -16,15 +16,25 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
 public class HttpComponent {
+  
 	private static final String ALIAS_BUNDLE = "/bundles";
 	private static final String ALIAS_REPOSITORY = "/repositories";
 
 	private HttpService httpService;
 
+	/*
+	 * TODO: Rename the component.xml to something more meaningful. You can have more than one component
+	 * in a bundle
+	 * 
+	 * TODO: The unbind reference method is missing.
+	 */
 	public void setHttpService(HttpService httpService) {
 		this.httpService = httpService;
 	}
 
+	/*
+	 * TODO: The exception handling in this method sucks ;)
+	 */
 	protected void startService() {
 		try {
 			BundleServlet bundleServlet = new BundleServlet();

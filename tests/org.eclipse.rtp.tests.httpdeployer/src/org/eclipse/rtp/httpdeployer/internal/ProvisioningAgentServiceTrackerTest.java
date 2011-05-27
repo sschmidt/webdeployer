@@ -9,14 +9,12 @@
 package org.eclipse.rtp.httpdeployer.internal;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.core.ProvisionException;
 import org.eclipse.equinox.p2.engine.IProfileRegistry;
-import org.eclipse.rtp.httpdeployer.internal.Activator;
-import org.eclipse.rtp.httpdeployer.internal.ProvisioningAgentServiceTracker;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

@@ -131,6 +131,10 @@ public class RepositoryServlet extends HttpServlet {
 		return result;
 	}
 
+	/*
+	 * TODO: This methods looks good. It's very clean and short. But handleRepository is not hte best name 
+	 * I think. What do you think about performRepositoryAction?
+	 */
 	private void handleRepository(URI repository, Action action) {
 		if (action.equals(Action.CREATE)) {
 			repoManager.addRepository(repository);
@@ -139,6 +143,9 @@ public class RepositoryServlet extends HttpServlet {
 		}
 	}
 
+	/*
+	 * TODO: Result is not a meaningful name
+	 */
 	private class Result {
 		private List<String> successfulResults = new ArrayList<String>();
 		private List<ErrorInfo> failedResults = new ArrayList<ErrorInfo>();

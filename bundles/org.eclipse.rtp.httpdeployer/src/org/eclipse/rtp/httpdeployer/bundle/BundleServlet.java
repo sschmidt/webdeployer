@@ -29,6 +29,9 @@ public class BundleServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 
+	/*
+	 * TODO: Extract strings as constants
+	 */
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		resp.setContentType("text/xml");
@@ -64,6 +67,12 @@ public class BundleServlet extends HttpServlet {
 		return new Document(root);
 	}
 
+	/*
+	 * TODO: User FrameworkUtil.getBundle(getClass()).getBundleContext() to get the bundle context. 
+	 * Then you don't have to use this singleton
+	 * 
+	 * TODO: I don't like multiple returns. I think it makes it harder to follow the flow of a method.
+	 */
 	private List<Bundle> receiveBundles(int bundleState) {
 		BundleContext context = Activator.getInstance().getContext();
 		Bundle[] bundles = context.getBundles();

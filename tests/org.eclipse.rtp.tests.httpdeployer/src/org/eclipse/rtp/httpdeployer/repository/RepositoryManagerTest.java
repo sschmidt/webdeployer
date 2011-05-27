@@ -25,13 +25,14 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepositoryManager;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepositoryManager;
-import org.eclipse.rtp.httpdeployer.repository.RepositoryException;
-import org.eclipse.rtp.httpdeployer.repository.RepositoryManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+/*
+ * TODO: Use ECLEmma to increase your code coverage
+ */
 public class RepositoryManagerTest {
 
 	@Mock

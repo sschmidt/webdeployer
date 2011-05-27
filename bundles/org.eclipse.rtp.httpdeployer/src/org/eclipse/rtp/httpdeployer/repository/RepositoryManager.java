@@ -32,16 +32,32 @@ public class RepositoryManager {
 	private static final int FILE_BUFFER = 8192;
 	private final IProvisioningAgent provisioningAgent;
 
+	/*
+	 * TODO: This is a fake class. It seems that it holds a state but it doesn't. 
+	 * You initialize an object of this class only once with this agent:
+	 * Activator.getInstance().getProvisioningAgent()
+	 * 
+	 * So, why do this class needs to hold a reference to the agent when you access it in a static way?
+	 * 
+	 * This class looks like a utility to me so far.
+	 * 
+	 */
 	public RepositoryManager(IProvisioningAgent provisioningAgent) {
 		this.provisioningAgent = provisioningAgent;
 	}
 
+    /*
+     * TODO: Can be static
+     */	
 	public URI[] getRepositories() {
 		IMetadataRepositoryManager metaRepoManager = getMetadataRepositoryManager();
 
 		return metaRepoManager.getKnownRepositories(IMetadataRepositoryManager.REPOSITORIES_ALL);
 	}
 
+    /*
+     * TODO: Can be static
+     */	
 	public void addRepository(URI repository) {
 		IMetadataRepositoryManager metaRepoManager = getMetadataRepositoryManager();
 		IArtifactRepositoryManager artiRepoManager = getArtifactRepositoryManager();
@@ -50,6 +66,9 @@ public class RepositoryManager {
 		artiRepoManager.addRepository(repository);
 	}
 
+    /*
+     * TODO: Can be static
+     */	
 	public URI addRepository(InputStream inputStream) throws RepositoryException {
 		ZipInputStream zis = new ZipInputStream(inputStream);
 
@@ -77,7 +96,10 @@ public class RepositoryManager {
 		addRepository(repositoryURI);
 		return repositoryURI;
 	}
-
+	
+    /*
+     * TODO: Can be static
+     */
 	public void removeRepository(URI repository) {
 		IMetadataRepositoryManager metaRepoManager = getMetadataRepositoryManager();
 		IArtifactRepositoryManager artiRepoManager = getArtifactRepositoryManager();
@@ -86,10 +108,24 @@ public class RepositoryManager {
 		artiRepoManager.removeRepository(repository);
 	}
 
+    /*
+     * TODO: Can be static
+     */	
 	public IMetadataRepository getMetadataRepository(URI uri) throws ProvisionException, OperationCanceledException {
 		return getMetadataRepositoryManager().loadRepository(uri, new NullProgressMonitor());
 	}
-
+	
+	/*
+	 * TODO: This method is very long. I picked it out as an example. You are using many blank lines
+	 * in your code. I don't like them ;) 
+	 * Blank lines are always an indicator that the method is to long. There is one Exception.
+	 * When you are writing test it's valid to separate the init, do and assert blocks.
+	 * 
+	 * Regarding the method below. It would split this in 4 separate methods. I think you can do this too ;)
+	 */
+	 /*
+     * TODO: Can be static
+     */
 	private void createLocalRepository(ZipInputStream zis, File repository) throws IOException, FileNotFoundException {
 		ZipEntry currentFile;
 		while ((currentFile = zis.getNextEntry()) != null) {
@@ -113,6 +149,9 @@ public class RepositoryManager {
 		}
 	}
 
+	 /*
+     * TODO: Can be static
+     */
 	private void validateLocalRepository(File repository) throws RepositoryException {
 		File[] files = repository.listFiles();
 		boolean artifactsFound = false;
@@ -135,6 +174,9 @@ public class RepositoryManager {
 		}
 	}
 
+	/*
+	 * TODO: Can be static
+	 */
 	private IMetadataRepositoryManager getMetadataRepositoryManager() {
 		IMetadataRepositoryManager service = (IMetadataRepositoryManager) provisioningAgent
 				.getService(IMetadataRepositoryManager.SERVICE_NAME);
@@ -145,6 +187,9 @@ public class RepositoryManager {
 		return service;
 	}
 
+	/*
+	 * TODO: Can be static
+	 */
 	private IArtifactRepositoryManager getArtifactRepositoryManager() {
 		IArtifactRepositoryManager service = (IArtifactRepositoryManager) provisioningAgent
 				.getService(IArtifactRepositoryManager.SERVICE_NAME);
