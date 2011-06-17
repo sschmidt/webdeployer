@@ -30,9 +30,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-/*
- * TODO: Use ECLEmma to increase your code coverage
- */
 public class RepositoryManagerTest {
 
 	@Mock

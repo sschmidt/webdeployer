@@ -54,6 +54,12 @@ public class BundleServletTest {
 	}
 
 	@Test
+	public void listAllBundles2Test() throws Exception {
+		when(request.getPathInfo()).thenReturn(null);
+		testResultXml();
+	}
+
+	@Test
 	public void listActiveBundlesTest() throws Exception {
 		when(request.getPathInfo()).thenReturn("/active");
 		testResultXml();

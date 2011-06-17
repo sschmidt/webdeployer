@@ -37,24 +37,24 @@ import org.jdom.output.XMLOutputter;
 public class RepositoryServlet extends HttpServlet {
 
 	private static final long serialVersionUID = -4190823339335383710L;
-	private final RepositoryManager repoManager;
+	private final RepositoryManager repositoryManager;
 
 	private enum Action {
 		DELETE, CREATE
 	}
 
 	public RepositoryServlet(IProvisioningAgent provisioningAgent) {
-		this.repoManager = new RepositoryManager(provisioningAgent);
+		this.repositoryManager = new RepositoryManager(provisioningAgent);
 	}
 
 	public RepositoryServlet(RepositoryManager repositoryManager) {
-		this.repoManager = repositoryManager;
+		this.repositoryManager = repositoryManager;
 	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		resp.setContentType(CommonConstants.RESPONSE_CONTENT_TYPE);
-		URI[] repositories = repoManager.getRepositories();
+		URI[] repositories = repositoryManager.getRepositories();
 		Element root = new Element(XmlConstants.XML_ELEMENT_REPOSITORIES);
 
 		for (URI repository : repositories) {
@@ -86,9 +86,6 @@ public class RepositoryServlet extends HttpServlet {
 			} catch (FileUploadException e) {
 				resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
 				return;
-			} catch (InvalidRepositoryException e) {
-				resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
-				return;
 			}
 		}
 
@@ -97,19 +94,19 @@ public class RepositoryServlet extends HttpServlet {
 	}
 
 	private RepositoryOperationResult parseUploadRequest(HttpServletRequest req) throws FileUploadException,
-			FileNotFoundException, IOException, InvalidRepositoryException {
+			FileNotFoundException, IOException {
 		RepositoryOperationResult result;
 		FileItemFactory factory = new DiskFileItemFactory();
 		ServletFileUpload upload = new ServletFileUpload(factory);
 		@SuppressWarnings("unchecked")
 		List<FileItem> files = upload.parseRequest(req);
 		if (files.size() != 1) {
-			throw new InvalidRepositoryException("no file found");
+			throw new FileUploadException("no file found");
 		}
 
 		result = new RepositoryOperationResult();
 		try {
-			result.addSuccess(repoManager.addRepository(files.get(0).getInputStream()).toString());
+			result.addSuccess(repositoryManager.addRepository(files.get(0).getInputStream()).toString());
 		} catch (InvalidRepositoryException e) {
 			result.addFailure("local", e.getMessage());
 		}
@@ -161,12 +158,16 @@ public class RepositoryServlet extends HttpServlet {
 
 	private void performRepositoryAction(URI repository, Action action) {
 		if (action.equals(Action.CREATE)) {
-			repoManager.addRepository(repository);
+			repositoryManager.addRepository(repository);
 		} else {
-			repoManager.removeRepository(repository);
+			repositoryManager.removeRepository(repository);
 		}
 	}
 
+	public RepositoryManager getRepositoryManager() {
+		return repositoryManager;
+	}
+	
 	private class RepositoryOperationResult {
 		private List<String> successfulResults = new ArrayList<String>();
 		private List<ErrorInfo> failedResults = new ArrayList<ErrorInfo>();

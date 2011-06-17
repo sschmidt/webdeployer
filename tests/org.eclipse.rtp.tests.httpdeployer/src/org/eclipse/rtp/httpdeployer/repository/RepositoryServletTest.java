@@ -9,12 +9,15 @@
 package org.eclipse.rtp.httpdeployer.repository;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -26,6 +29,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.eclipse.rtp.httpdeployer.util.MockServletInputStream;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -134,5 +139,47 @@ public class RepositoryServletTest {
 		assertEquals("successful", repo.getChildText("status"));
 
 		verify(repoManagerMock).addRepository(new URI(TEST_REPOSITORY_URI));
+	}
+	
+	@Test
+	public void doInvalidMultipartUploadTest() throws ServletException, IOException {
+		when(requestMock.getMethod()).thenReturn("POST");
+		when(requestMock.getContentType()).thenReturn(ServletFileUpload.MULTIPART_FORM_DATA + ";NO_BOUNDARY!!!!!!");
+		repositoryServlet.doPost(requestMock, responseMock);
+		verify(responseMock).sendError(400);
+	}
+	
+	@Test
+	public void doValidMultipartUploadTest() throws Exception {
+		when(requestMock.getMethod()).thenReturn("POST");
+		when(requestMock.getContentType()).thenReturn(ServletFileUpload.MULTIPART_FORM_DATA + ";boundary=boundary");
+		when(requestMock.getInputStream()).thenReturn(new MockServletInputStream(new FileInputStream("fixtures/validRepositoryPackage.zip")));
+		URI uri = new URI("tmp://foo/bar");
+		when(repoManagerMock.addRepository(any(InputStream.class))).thenReturn(uri);
+		repositoryServlet.doPost(requestMock, responseMock);
+
+		SAXBuilder builder = new SAXBuilder();
+		Document request = builder.build(new ByteArrayInputStream(responseWriter.toString().getBytes()));
+		Element repo = (Element) request.getRootElement().getChildren().get(0);
+
+		assertEquals(uri.toString(), repo.getChildText("uri"));
+		assertEquals("successful", repo.getChildText("status"));
+	}
+	
+	@Test
+	public void doValidMultipartUploadWithInvalidRepoTest() throws Exception {
+		when(requestMock.getMethod()).thenReturn("POST");
+		when(requestMock.getContentType()).thenReturn(ServletFileUpload.MULTIPART_FORM_DATA + ";boundary=boundary");
+		when(requestMock.getInputStream()).thenReturn(new MockServletInputStream(new FileInputStream("fixtures/validRepositoryPackage.zip")));
+		when(repoManagerMock.addRepository(any(InputStream.class))).thenThrow(new InvalidRepositoryException(""));
+		repositoryServlet.doPost(requestMock, responseMock);
+
+		SAXBuilder builder = new SAXBuilder();
+		Document request = builder.build(new ByteArrayInputStream(responseWriter.toString().getBytes()));
+		Element repo = (Element) request.getRootElement().getChildren().get(0);
+
+		URI uri = new URI("local");
+		assertEquals(uri.toString(), repo.getChildText("uri"));
+		assertEquals("failed", repo.getChildText("status"));
 	}
 }

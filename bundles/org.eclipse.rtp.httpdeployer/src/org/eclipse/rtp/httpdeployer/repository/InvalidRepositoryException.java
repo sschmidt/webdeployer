@@ -15,9 +15,4 @@ public class InvalidRepositoryException extends Exception {
 	public InvalidRepositoryException(String string) {
 		super(string);
 	}
-
-	public InvalidRepositoryException(Exception e) {
-		super(e);
-	}
-
 }

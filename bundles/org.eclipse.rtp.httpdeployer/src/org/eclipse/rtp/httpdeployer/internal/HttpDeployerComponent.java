@@ -18,11 +18,14 @@ import org.osgi.service.http.NamespaceException;
 
 public class HttpDeployerComponent {
 
-	private static final String ALIAS_BUNDLE = "/bundles";
-	private static final String ALIAS_REPOSITORY = "/repositories";
+	public static final String ALIAS_BUNDLE = "/bundles";
+	public static final String ALIAS_REPOSITORY = "/repositories";
 
-	private HttpService httpService;
-	private IProvisioningAgent provisioningAgent;
+	protected RepositoryServlet repositoryServlet;
+	protected BundleServlet bundleServlet;
+	
+	protected HttpService httpService;
+	protected IProvisioningAgent provisioningAgent;
 
 	public void setHttpService(HttpService httpService) {
 		this.httpService = httpService;
@@ -41,8 +44,8 @@ public class HttpDeployerComponent {
 	}
 
 	protected void startService() throws ServletException, NamespaceException {
-		BundleServlet bundleServlet = new BundleServlet();
-		RepositoryServlet repositoryServlet = new RepositoryServlet(provisioningAgent);
+		bundleServlet = new BundleServlet();
+		repositoryServlet = new RepositoryServlet(provisioningAgent);
 		httpService.registerServlet(ALIAS_BUNDLE, bundleServlet, null, null);
 		httpService.registerServlet(ALIAS_REPOSITORY, repositoryServlet, null, null);
 	}

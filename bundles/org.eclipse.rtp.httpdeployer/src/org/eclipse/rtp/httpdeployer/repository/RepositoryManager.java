@@ -19,12 +19,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
-import org.eclipse.equinox.p2.core.ProvisionException;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepositoryManager;
-import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepositoryManager;
 import org.eclipse.rtp.httpdeployer.internal.CommonConstants;
 
@@ -91,10 +87,6 @@ public class RepositoryManager {
 		artiRepoManager.removeRepository(repository);
 	}
 
-	public IMetadataRepository getMetadataRepository(URI uri) throws ProvisionException, OperationCanceledException {
-		return getMetadataRepositoryManager().loadRepository(uri, new NullProgressMonitor());
-	}
-
 	private void createLocalRepositoryStructure(ZipInputStream zis, File repository) throws IOException,
 			FileNotFoundException {
 		ZipEntry currentFile;
@@ -143,12 +135,8 @@ public class RepositoryManager {
 			}
 		}
 
-		if (!artifactsFound) {
-			throw new InvalidRepositoryException("invalid repository: artifacts.jar expected");
-		}
-
-		if (!contentFound) {
-			throw new InvalidRepositoryException("invalid repository: content.jar expected");
+		if (!artifactsFound || !contentFound) {
+			throw new InvalidRepositoryException("invalid repository: required files not found");
 		}
 	}
 
@@ -170,5 +158,9 @@ public class RepositoryManager {
 		}
 
 		return service;
+	}
+
+	public IProvisioningAgent getProvisioningAgent() {
+		return provisioningAgent;
 	}
 }
