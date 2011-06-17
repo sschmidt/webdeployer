@@ -10,47 +10,45 @@ package org.eclipse.rtp.httpdeployer.internal;
 
 import javax.servlet.ServletException;
 
+import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.rtp.httpdeployer.bundle.BundleServlet;
 import org.eclipse.rtp.httpdeployer.repository.RepositoryServlet;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
-public class HttpComponent {
-  
+public class HttpDeployerComponent {
+
 	private static final String ALIAS_BUNDLE = "/bundles";
 	private static final String ALIAS_REPOSITORY = "/repositories";
 
 	private HttpService httpService;
+	private IProvisioningAgent provisioningAgent;
 
-	/*
-	 * TODO: Rename the component.xml to something more meaningful. You can have more than one component
-	 * in a bundle
-	 * 
-	 * TODO: The unbind reference method is missing.
-	 */
 	public void setHttpService(HttpService httpService) {
 		this.httpService = httpService;
 	}
 
-	/*
-	 * TODO: The exception handling in this method sucks ;)
-	 */
-	protected void startService() {
-		try {
-			BundleServlet bundleServlet = new BundleServlet();
-			RepositoryServlet repositoryServlet = new RepositoryServlet();
-			httpService.registerServlet(ALIAS_BUNDLE, bundleServlet, null, null);
-			httpService.registerServlet(ALIAS_REPOSITORY, repositoryServlet, null, null);
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (NamespaceException e) {
-			e.printStackTrace();
-		}
+	public void unsetHttpService(HttpService httpService) {
+		this.httpService = null;
+	}
+
+	public void setProvisioningAgent(IProvisioningAgent provisioningAgent) {
+		this.provisioningAgent = provisioningAgent;
+	}
+
+	public void unsetProvisioningAgent(IProvisioningAgent provisioningAgent) {
+		this.provisioningAgent = null;
+	}
+
+	protected void startService() throws ServletException, NamespaceException {
+		BundleServlet bundleServlet = new BundleServlet();
+		RepositoryServlet repositoryServlet = new RepositoryServlet(provisioningAgent);
+		httpService.registerServlet(ALIAS_BUNDLE, bundleServlet, null, null);
+		httpService.registerServlet(ALIAS_REPOSITORY, repositoryServlet, null, null);
 	}
 
 	protected void shutdownService() {
 		httpService.unregister(ALIAS_BUNDLE);
 		httpService.unregister(ALIAS_REPOSITORY);
 	}
-
 }

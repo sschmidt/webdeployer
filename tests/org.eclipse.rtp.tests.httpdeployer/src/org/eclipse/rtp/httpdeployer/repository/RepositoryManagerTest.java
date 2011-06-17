@@ -78,22 +78,22 @@ public class RepositoryManagerTest {
 		verify(mrmMock).getKnownRepositories(IMetadataRepositoryManager.REPOSITORIES_ALL);
 	}
 
-	@Test(expected = RepositoryException.class)
-	public void addEmptyLocalRepositoryTest() throws RepositoryException {
+	@Test(expected = InvalidRepositoryException.class)
+	public void addEmptyLocalRepositoryTest() throws InvalidRepositoryException, FileNotFoundException, IOException {
 		RepositoryManager manager = new RepositoryManager(paMock);
 		InputStream stream = new ByteArrayInputStream(new byte[1]);
 		manager.addRepository(stream);
 	}
 
-	@Test(expected = RepositoryException.class)
-	public void addInvalidLocalRepositoryTest() throws RepositoryException, FileNotFoundException {
+	@Test(expected = InvalidRepositoryException.class)
+	public void addInvalidLocalRepositoryTest() throws InvalidRepositoryException, IOException {
 		RepositoryManager manager = new RepositoryManager(paMock);
 		InputStream stream = new FileInputStream("fixtures/invalidRepositoryPackage.zip");
 		manager.addRepository(stream);
 	}
 
 	@Test
-	public void addValidLocalRepository() throws RepositoryException, IOException {
+	public void addValidLocalRepository() throws InvalidRepositoryException, IOException {
 		RepositoryManager manager = new RepositoryManager(paMock);
 		InputStream stream = new FileInputStream("fixtures/validRepositoryPackage.zip");
 		URI uri = manager.addRepository(stream);

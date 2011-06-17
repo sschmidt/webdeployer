@@ -10,7 +10,6 @@ package org.eclipse.rtp.httpdeployer.bundle;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -18,77 +17,76 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.rtp.httpdeployer.internal.Activator;
+import org.eclipse.rtp.httpdeployer.internal.CommonConstants;
+import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.output.XMLOutputter;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 
 public class BundleServlet extends HttpServlet {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 3749930485862030632L;
+	private static final String REQUEST_PATH_RESOLVED_BUNDLES = "/resolved";
+	private static final String REQUEST_PATH_ACTIVE_BUNDLES = "/active";
+	private static final int ALL_BUNDLES = 0;
 
-	/*
-	 * TODO: Extract strings as constants
-	 */
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		resp.setContentType("text/xml");
-
-		String requestPath = req.getPathInfo();
-		Document responseXml;
-
-		if (requestPath == null) {
-			responseXml = generateResponseXml(0);
-		} else if (requestPath.startsWith("/active")) {
-			responseXml = generateResponseXml(Bundle.ACTIVE);
-		} else if (requestPath.startsWith("/resolved")) {
-			responseXml = generateResponseXml(Bundle.RESOLVED);
-		} else {
-			responseXml = generateResponseXml(0);
-		}
-
+		resp.setContentType(CommonConstants.RESPONSE_CONTENT_TYPE);
+		Document responseXml = parseRequest(req);
 		XMLOutputter out = new XMLOutputter();
 		out.output(responseXml, resp.getWriter());
 	}
 
-	private Document generateResponseXml(int bundleState) {
-		List<Bundle> bundles = receiveBundles(bundleState);
-		Element root = new Element("bundles");
+	private Document parseRequest(HttpServletRequest req) {
+		String requestPath = req.getPathInfo();
+		Document responseXml;
 
-		for (Bundle bundle : bundles) {
-			Element bundleXml = new Element("bundle");
-			bundleXml.addContent(new Element("name").addContent(bundle.getSymbolicName()));
-			bundleXml.addContent(new Element("version").addContent(bundle.getVersion().toString()));
-			root.addContent(bundleXml);
+		if (requestPath == null) {
+			responseXml = generateBundleList(ALL_BUNDLES);
+		} else if (requestPath.startsWith(REQUEST_PATH_ACTIVE_BUNDLES)) {
+			responseXml = generateBundleList(Bundle.ACTIVE);
+		} else if (requestPath.startsWith(REQUEST_PATH_RESOLVED_BUNDLES)) {
+			responseXml = generateBundleList(Bundle.RESOLVED);
+		} else {
+			responseXml = generateBundleList(ALL_BUNDLES);
 		}
+		return responseXml;
+	}
+
+	private Document generateBundleList(int requestType) {
+		List<Bundle> bundles = receiveBundles(requestType);
+		Element root = generateBundleListXml(bundles);
 
 		return new Document(root);
 	}
 
-	/*
-	 * TODO: User FrameworkUtil.getBundle(getClass()).getBundleContext() to get the bundle context. 
-	 * Then you don't have to use this singleton
-	 * 
-	 * TODO: I don't like multiple returns. I think it makes it harder to follow the flow of a method.
-	 */
-	private List<Bundle> receiveBundles(int bundleState) {
-		BundleContext context = Activator.getInstance().getContext();
-		Bundle[] bundles = context.getBundles();
-
-		if (bundleState == 0) {
-			return Arrays.asList(bundles);
+	private Element generateBundleListXml(List<Bundle> bundles) {
+		Element root = new Element(XmlConstants.XML_ELEMENT_BUNDLES);
+		for (Bundle bundle : bundles) {
+			Element bundleXml = new Element(XmlConstants.XML_ELEMENT_BUNDLE);
+			bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_NAME).addContent(bundle.getSymbolicName()));
+			bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_VERSION).addContent(bundle.getVersion().toString()));
+			root.addContent(bundleXml);
 		}
+
+		return root;
+	}
+
+	private List<Bundle> receiveBundles(int requestType) {
+		BundleContext context = FrameworkUtil.getBundle(getClass()).getBundleContext();
+		Bundle[] bundles = context.getBundles();
 
 		List<Bundle> validBundles = new ArrayList<Bundle>();
 		for (Bundle bundle : bundles) {
-			if (bundle.getState() == bundleState) {
+			if (bundle.getState() == requestType || requestType == ALL_BUNDLES) {
 				validBundles.add(bundle);
 			}
 		}
 
 		return validBundles;
-
 	}
 }

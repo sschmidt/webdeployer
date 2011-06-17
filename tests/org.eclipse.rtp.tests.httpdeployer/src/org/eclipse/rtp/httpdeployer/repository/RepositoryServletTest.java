@@ -62,8 +62,7 @@ public class RepositoryServletTest {
 	public void setUp() throws URISyntaxException, IOException {
 		MockitoAnnotations.initMocks(this);
 
-		repositoryServlet = new RepositoryServlet();
-		repositoryServlet.repoManager = repoManagerMock;
+		repositoryServlet = new RepositoryServlet(repoManagerMock);
 
 		repositories = new URI[2];
 		repositories[0] = new URI("file:/tmp");

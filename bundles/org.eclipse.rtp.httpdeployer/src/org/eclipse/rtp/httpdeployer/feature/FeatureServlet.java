@@ -6,23 +6,13 @@
  * 
  * Contributors: Sebastian Schmidt - initial API and implementation
  ******************************************************************************/
-package org.eclipse.rtp.httpdeployer.repository;
+package org.eclipse.rtp.httpdeployer.feature;
 
-/*
- * TODO: RepositoryExeption is not a good name. I mean, compare it to FileNotFoundException.
- * With this name you see that a file was not found. What info do you get from the name
- * RepositoryException?
- */
-public class RepositoryException extends Exception {
+import javax.servlet.http.HttpServlet;
 
-	private static final long serialVersionUID = 1L;
+public class FeatureServlet extends HttpServlet {
 
-	public RepositoryException(String string) {
-		super(string);
-	}
+	private static final long serialVersionUID = -3303657595787839727L;
 
-	public RepositoryException(Exception e) {
-		super(e);
-	}
 
 }

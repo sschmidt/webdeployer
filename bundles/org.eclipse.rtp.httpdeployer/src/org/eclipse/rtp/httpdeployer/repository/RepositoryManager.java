@@ -26,38 +26,26 @@ import org.eclipse.equinox.p2.core.ProvisionException;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepositoryManager;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepositoryManager;
+import org.eclipse.rtp.httpdeployer.internal.CommonConstants;
 
 public class RepositoryManager {
 
+	private static final String LOCAL_REPOSITORY_PREFIX = "repo_";
+	private static final String FILENAME_CONTENT = "content.jar";
+	private static final String FILENAME_ARTIFACTS = "artifacts.jar";
 	private static final int FILE_BUFFER = 8192;
 	private final IProvisioningAgent provisioningAgent;
 
-	/*
-	 * TODO: This is a fake class. It seems that it holds a state but it doesn't. 
-	 * You initialize an object of this class only once with this agent:
-	 * Activator.getInstance().getProvisioningAgent()
-	 * 
-	 * So, why do this class needs to hold a reference to the agent when you access it in a static way?
-	 * 
-	 * This class looks like a utility to me so far.
-	 * 
-	 */
 	public RepositoryManager(IProvisioningAgent provisioningAgent) {
 		this.provisioningAgent = provisioningAgent;
 	}
 
-    /*
-     * TODO: Can be static
-     */	
 	public URI[] getRepositories() {
 		IMetadataRepositoryManager metaRepoManager = getMetadataRepositoryManager();
 
 		return metaRepoManager.getKnownRepositories(IMetadataRepositoryManager.REPOSITORIES_ALL);
 	}
 
-    /*
-     * TODO: Can be static
-     */	
 	public void addRepository(URI repository) {
 		IMetadataRepositoryManager metaRepoManager = getMetadataRepositoryManager();
 		IArtifactRepositoryManager artiRepoManager = getArtifactRepositoryManager();
@@ -66,40 +54,35 @@ public class RepositoryManager {
 		artiRepoManager.addRepository(repository);
 	}
 
-    /*
-     * TODO: Can be static
-     */	
-	public URI addRepository(InputStream inputStream) throws RepositoryException {
+	public URI addRepository(InputStream inputStream) throws InvalidRepositoryException, FileNotFoundException,
+			IOException {
 		ZipInputStream zis = new ZipInputStream(inputStream);
-
-		File repository = null;
-
-		try {
-			repository = new File(System.getProperty("java.io.tmpdir") + "/repo_" + Long.toString(System.nanoTime()));
-
-			if (!repository.mkdirs()) {
-				throw new RepositoryException("error creating repository directory");
-			}
-
-			createLocalRepository(zis, repository);
-			try {
-				validateLocalRepository(repository);
-			} catch (RepositoryException e) {
-				FileUtils.deleteDirectory(repository);
-				throw e;
-			}
-		} catch (IOException e) {
-			throw new RepositoryException(e);
-		}
-
+		File repository = createLocalRepository(zis);
 		URI repositoryURI = repository.toURI();
 		addRepository(repositoryURI);
+
 		return repositoryURI;
 	}
-	
-    /*
-     * TODO: Can be static
-     */
+
+	private File createLocalRepository(ZipInputStream zis) throws InvalidRepositoryException, IOException,
+			FileNotFoundException {
+		File repository; 
+		repository = new File(System.getProperty("java.io.tmpdir") + CommonConstants.DIR_SEPARATOR + LOCAL_REPOSITORY_PREFIX + Long.toString(System.nanoTime()));
+		if (!repository.mkdirs()) {
+			throw new IOException("error creating repository directory");
+		}
+		createLocalRepositoryStructure(zis, repository);
+
+		try {
+			validateLocalRepository(repository);
+		} catch (InvalidRepositoryException e) {
+			FileUtils.deleteDirectory(repository);
+			throw e;
+		}
+
+		return repository;
+	}
+
 	public void removeRepository(URI repository) {
 		IMetadataRepositoryManager metaRepoManager = getMetadataRepositoryManager();
 		IArtifactRepositoryManager artiRepoManager = getArtifactRepositoryManager();
@@ -108,76 +91,68 @@ public class RepositoryManager {
 		artiRepoManager.removeRepository(repository);
 	}
 
-    /*
-     * TODO: Can be static
-     */	
 	public IMetadataRepository getMetadataRepository(URI uri) throws ProvisionException, OperationCanceledException {
 		return getMetadataRepositoryManager().loadRepository(uri, new NullProgressMonitor());
 	}
-	
-	/*
-	 * TODO: This method is very long. I picked it out as an example. You are using many blank lines
-	 * in your code. I don't like them ;) 
-	 * Blank lines are always an indicator that the method is to long. There is one Exception.
-	 * When you are writing test it's valid to separate the init, do and assert blocks.
-	 * 
-	 * Regarding the method below. It would split this in 4 separate methods. I think you can do this too ;)
-	 */
-	 /*
-     * TODO: Can be static
-     */
-	private void createLocalRepository(ZipInputStream zis, File repository) throws IOException, FileNotFoundException {
+
+	private void createLocalRepositoryStructure(ZipInputStream zis, File repository) throws IOException,
+			FileNotFoundException {
 		ZipEntry currentFile;
 		while ((currentFile = zis.getNextEntry()) != null) {
 			if (currentFile.isDirectory()) {
-				new File(repository.getAbsolutePath() + "/" + currentFile.getName()).mkdir();
+				createLocalDirectory(repository, currentFile);
 			} else {
-				File file = new File(repository.getAbsolutePath() + "/" + currentFile.getName());
-				file.createNewFile();
-				FileOutputStream fos = new FileOutputStream(file);
-				BufferedOutputStream bfos = new BufferedOutputStream(fos, FILE_BUFFER);
-
-				int resultLength;
-				byte[] data = new byte[FILE_BUFFER];
-				while ((resultLength = zis.read(data, 0, FILE_BUFFER)) != -1) {
-					bfos.write(data, 0, resultLength);
-				}
-
-				bfos.flush();
-				bfos.close();
+				createLocalFile(zis, repository, currentFile);
 			}
 		}
 	}
 
-	 /*
-     * TODO: Can be static
-     */
-	private void validateLocalRepository(File repository) throws RepositoryException {
+	private void createLocalDirectory(File repository, ZipEntry currentFile) {
+		File file = new File(repository.getAbsolutePath() + CommonConstants.DIR_SEPARATOR + currentFile.getName());
+		file.mkdir();
+	}
+
+	private void createLocalFile(ZipInputStream zis, File repository, ZipEntry currentFile) throws IOException, FileNotFoundException {
+		File file = new File(repository.getAbsolutePath() + CommonConstants.DIR_SEPARATOR + currentFile.getName());
+		file.createNewFile();
+		FileOutputStream fos = new FileOutputStream(file);
+		BufferedOutputStream bfos = new BufferedOutputStream(fos, FILE_BUFFER);
+		saveFileData(zis, bfos);
+	}
+
+	private void saveFileData(ZipInputStream zis, BufferedOutputStream bfos) throws IOException {
+		int resultLength;
+		byte[] data = new byte[FILE_BUFFER];
+		while ((resultLength = zis.read(data, 0, FILE_BUFFER)) != -1) {
+			bfos.write(data, 0, resultLength);
+		}
+		bfos.flush();
+		bfos.close();
+	}
+
+	public void validateLocalRepository(File repository) throws InvalidRepositoryException {
 		File[] files = repository.listFiles();
 		boolean artifactsFound = false;
 		boolean contentFound = false;
 
 		for (File file : files) {
-			if (file.getName().equals("artifacts.jar")) {
+			if (file.getName().equals(FILENAME_ARTIFACTS)) {
 				artifactsFound = true;
-			} else if (file.getName().equals("content.jar")) {
+			} else if (file.getName().equals(FILENAME_CONTENT)) {
 				contentFound = true;
 			}
 		}
 
 		if (!artifactsFound) {
-			throw new RepositoryException("invalid repository: artifacts.jar expected");
+			throw new InvalidRepositoryException("invalid repository: artifacts.jar expected");
 		}
 
 		if (!contentFound) {
-			throw new RepositoryException("invalid repository: content.jar expected");
+			throw new InvalidRepositoryException("invalid repository: content.jar expected");
 		}
 	}
 
-	/*
-	 * TODO: Can be static
-	 */
-	private IMetadataRepositoryManager getMetadataRepositoryManager() {
+	public IMetadataRepositoryManager getMetadataRepositoryManager() {
 		IMetadataRepositoryManager service = (IMetadataRepositoryManager) provisioningAgent
 				.getService(IMetadataRepositoryManager.SERVICE_NAME);
 		if (service == null) {
@@ -187,10 +162,7 @@ public class RepositoryManager {
 		return service;
 	}
 
-	/*
-	 * TODO: Can be static
-	 */
-	private IArtifactRepositoryManager getArtifactRepositoryManager() {
+	public IArtifactRepositoryManager getArtifactRepositoryManager() {
 		IArtifactRepositoryManager service = (IArtifactRepositoryManager) provisioningAgent
 				.getService(IArtifactRepositoryManager.SERVICE_NAME);
 		if (service == null) {
