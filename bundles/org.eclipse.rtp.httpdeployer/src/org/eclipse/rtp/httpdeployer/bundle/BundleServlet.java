@@ -29,9 +29,9 @@ import org.osgi.framework.FrameworkUtil;
 public class BundleServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 3749930485862030632L;
-	private static final String REQUEST_PATH_RESOLVED_BUNDLES = "/resolved";
-	private static final String REQUEST_PATH_ACTIVE_BUNDLES = "/active";
-	private static final int ALL_BUNDLES = 0;
+	protected static final String REQUEST_PATH_RESOLVED_BUNDLES = "/resolved";
+	protected static final String REQUEST_PATH_ACTIVE_BUNDLES = "/active";
+	protected static final int ALL_BUNDLES = 0;
 
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -77,8 +77,7 @@ public class BundleServlet extends HttpServlet {
 	}
 
 	private List<Bundle> receiveBundles(int requestType) {
-		BundleContext context = FrameworkUtil.getBundle(getClass()).getBundleContext();
-		Bundle[] bundles = context.getBundles();
+		Bundle[] bundles = receiveBundlesFromContext();
 
 		List<Bundle> validBundles = new ArrayList<Bundle>();
 		for (Bundle bundle : bundles) {
@@ -88,5 +87,12 @@ public class BundleServlet extends HttpServlet {
 		}
 
 		return validBundles;
+	}
+
+	protected Bundle[] receiveBundlesFromContext() {
+		Bundle currentBundle = FrameworkUtil.getBundle(getClass());
+		BundleContext context = currentBundle.getBundleContext();
+		Bundle[] bundles = context.getBundles();
+		return bundles;
 	}
 }

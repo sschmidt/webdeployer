@@ -25,7 +25,6 @@ import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.rtp.httpdeployer.internal.CommonConstants;
 import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
 import org.jdom.Document;
@@ -41,10 +40,6 @@ public class RepositoryServlet extends HttpServlet {
 
 	private enum Action {
 		DELETE, CREATE
-	}
-
-	public RepositoryServlet(IProvisioningAgent provisioningAgent) {
-		this.repositoryManager = new RepositoryManager(provisioningAgent);
 	}
 
 	public RepositoryServlet(RepositoryManager repositoryManager) {
@@ -114,10 +109,9 @@ public class RepositoryServlet extends HttpServlet {
 	}
 
 	private RepositoryOperationResult parseUriAddRequest(HttpServletRequest req) throws JDOMException, IOException {
-		RepositoryOperationResult result;
 		SAXBuilder builder = new SAXBuilder();
 		Document request = builder.build(req.getReader());
-		result = parseRequestDocument(request, Action.CREATE);
+		RepositoryOperationResult result = parseRequestDocument(request, Action.CREATE);
 		return result;
 	}
 

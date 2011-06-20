@@ -170,7 +170,7 @@ public class RepositoryServletTest {
 	public void doValidMultipartUploadWithInvalidRepoTest() throws Exception {
 		when(requestMock.getMethod()).thenReturn("POST");
 		when(requestMock.getContentType()).thenReturn(ServletFileUpload.MULTIPART_FORM_DATA + ";boundary=boundary");
-		when(requestMock.getInputStream()).thenReturn(new MockServletInputStream(new FileInputStream("fixtures/validRepositoryPackage.zip")));
+		when(requestMock.getInputStream()).thenReturn(new MockServletInputStream(new FileInputStream("fixtures/invalidRepositoryPackage.zip")));
 		when(repoManagerMock.addRepository(any(InputStream.class))).thenThrow(new InvalidRepositoryException(""));
 		repositoryServlet.doPost(requestMock, responseMock);
 

@@ -7,4 +7,6 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Fragment-Host: org.eclipse.rtp.httpdeployer
 Import-Package: org.junit,
  org.mockito,
- org.mockito.stubbing
+ org.mockito.stubbing,
+ org.hamcrest,
+ org.objenesis

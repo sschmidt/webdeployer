@@ -10,6 +10,7 @@ package org.eclipse.rtp.httpdeployer.bundle;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
@@ -17,25 +18,35 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.util.List;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.rtp.httpdeployer.bundle.BundleServlet;
+import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
 import org.jdom.Document;
 import org.jdom.Element;
+import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Version;
 
 public class BundleServletTest {
+
+	private static final String MOCK_RESOLVED_BUNDLE_NAME = "resolvedBundle";
+	private static final String MOCK_ACTIVE_BUNDLE_NAME = "activeBundle";
+
 	@Mock
 	private HttpServletResponse response;
+
 	@Mock
 	private HttpServletRequest request;
-	
+
 	private OutputStream responseStream;
 
 	@Before
@@ -50,38 +61,72 @@ public class BundleServletTest {
 	@Test
 	public void listAllBundlesTest() throws Exception {
 		when(request.getPathInfo()).thenReturn("/");
-		testResultXml();
+		List<Element> children = executeGetBundles();
+		assertEquals(2, children.size());
+		assertEquals(MOCK_ACTIVE_BUNDLE_NAME, children.get(0).getChild(XmlConstants.XML_ELEMENT_NAME).getValue());
+		assertEquals(MOCK_RESOLVED_BUNDLE_NAME, children.get(1).getChild(XmlConstants.XML_ELEMENT_NAME).getValue());
 	}
 
 	@Test
 	public void listAllBundles2Test() throws Exception {
 		when(request.getPathInfo()).thenReturn(null);
-		testResultXml();
+		List<Element> children = executeGetBundles();
+		assertEquals(2, children.size());
+		assertEquals(MOCK_ACTIVE_BUNDLE_NAME, children.get(0).getChild(XmlConstants.XML_ELEMENT_NAME).getValue());
+		assertEquals(MOCK_RESOLVED_BUNDLE_NAME, children.get(1).getChild(XmlConstants.XML_ELEMENT_NAME).getValue());
 	}
 
 	@Test
 	public void listActiveBundlesTest() throws Exception {
-		when(request.getPathInfo()).thenReturn("/active");
-		testResultXml();
+		when(request.getPathInfo()).thenReturn(BundleServlet.REQUEST_PATH_ACTIVE_BUNDLES);
+		List<Element> children = executeGetBundles();
+		assertEquals(1, children.size());
+		assertEquals(MOCK_ACTIVE_BUNDLE_NAME, children.get(0).getChild(XmlConstants.XML_ELEMENT_NAME).getValue());
 	}
 
 	@Test
 	public void listResolvedBundlesTest() throws Exception {
-		when(request.getPathInfo()).thenReturn("/resolved");
-		testResultXml();
+		when(request.getPathInfo()).thenReturn(BundleServlet.REQUEST_PATH_RESOLVED_BUNDLES);
+		List<Element> children = executeGetBundles();
+		assertEquals(1, children.size());
+		assertEquals(MOCK_RESOLVED_BUNDLE_NAME, children.get(0).getChild(XmlConstants.XML_ELEMENT_NAME).getValue());
 	}
 
-	private void testResultXml() throws Exception {
-		BundleServlet servletUnderTest = new BundleServlet();
+	@SuppressWarnings("unchecked")
+	private List<Element> executeGetBundles() throws ServletException, IOException, JDOMException {
+		BundleServlet servletUnderTest = new MockBundleServlet();
 		servletUnderTest.doGet(request, response);
 
 		SAXBuilder builder = new SAXBuilder();
 		Document result = builder.build(new StringReader(responseStream.toString()));
 
-		assertEquals("bundles", result.getRootElement().getName());
-		Element firstBundle = result.getRootElement().getChild("bundle");
+		assertEquals(XmlConstants.XML_ELEMENT_BUNDLES, result.getRootElement().getName());
+		List<Element> children = result.getRootElement().getChildren(XmlConstants.XML_ELEMENT_BUNDLE);
+
+		Element firstBundle = children.get(0);
 		assertNotNull(firstBundle);
-		assertNotNull(firstBundle.getChild("name"));
-		assertNotNull(firstBundle.getChild("version"));
+		assertNotNull(firstBundle.getChild(XmlConstants.XML_ELEMENT_NAME));
+		assertNotNull(firstBundle.getChild(XmlConstants.XML_ELEMENT_VERSION));
+
+		return children;
+	}
+
+	private class MockBundleServlet extends BundleServlet {
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected Bundle[] receiveBundlesFromContext() {
+			Bundle mockActiveBundle = mock(Bundle.class);
+			when(mockActiveBundle.getState()).thenReturn(Bundle.ACTIVE);
+			when(mockActiveBundle.getVersion()).thenReturn(new Version(0, 0, 0));
+			when(mockActiveBundle.getSymbolicName()).thenReturn(MOCK_ACTIVE_BUNDLE_NAME);
+
+			Bundle mockResolvedBundle = mock(Bundle.class);
+			when(mockResolvedBundle.getState()).thenReturn(Bundle.RESOLVED);
+			when(mockResolvedBundle.getVersion()).thenReturn(new Version(0, 0, 0));
+			when(mockResolvedBundle.getSymbolicName()).thenReturn(MOCK_RESOLVED_BUNDLE_NAME);
+
+			return new Bundle[] { mockActiveBundle, mockResolvedBundle };
+		}
 	}
 }
