@@ -10,22 +10,30 @@ package org.eclipse.rtp.httpdeployer.internal;
 
 import javax.servlet.ServletException;
 
+import org.eclipse.equinox.internal.provisional.configurator.Configurator;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.rtp.httpdeployer.bundle.BundleServlet;
+import org.eclipse.rtp.httpdeployer.feature.FeatureManager;
+import org.eclipse.rtp.httpdeployer.feature.FeatureServlet;
+import org.eclipse.rtp.httpdeployer.repository.RepositoryManager;
 import org.eclipse.rtp.httpdeployer.repository.RepositoryServlet;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
+@SuppressWarnings("restriction")
 public class HttpDeployerComponent {
 
 	public static final String ALIAS_BUNDLE = "/bundles";
 	public static final String ALIAS_REPOSITORY = "/repositories";
+	public static final String ALIAS_FEATURE = "/feature";
 
 	protected RepositoryServlet repositoryServlet;
 	protected BundleServlet bundleServlet;
-	
+	protected FeatureServlet featureServlet;
+
 	protected HttpService httpService;
 	protected IProvisioningAgent provisioningAgent;
+	protected Configurator configurator;
 
 	public void setHttpService(HttpService httpService) {
 		this.httpService = httpService;
@@ -35,6 +43,14 @@ public class HttpDeployerComponent {
 		this.httpService = null;
 	}
 
+	public void setConfigurator(Configurator configurator) {
+		this.configurator = configurator;
+	}
+	
+	public void unsetConfigurator(Configurator configurator) {
+		this.configurator = null;
+	}
+	
 	public void setProvisioningAgent(IProvisioningAgent provisioningAgent) {
 		this.provisioningAgent = provisioningAgent;
 	}
@@ -44,10 +60,16 @@ public class HttpDeployerComponent {
 	}
 
 	protected void startService() throws ServletException, NamespaceException {
+		RepositoryManager repositoryManager = new RepositoryManager(provisioningAgent);
+		FeatureManager featureManager = new FeatureManager(provisioningAgent, repositoryManager, configurator);
+
 		bundleServlet = new BundleServlet();
-		repositoryServlet = new RepositoryServlet(provisioningAgent);
+		repositoryServlet = new RepositoryServlet(repositoryManager);
+		featureServlet = new FeatureServlet(featureManager);
+
 		httpService.registerServlet(ALIAS_BUNDLE, bundleServlet, null, null);
 		httpService.registerServlet(ALIAS_REPOSITORY, repositoryServlet, null, null);
+		httpService.registerServlet(ALIAS_FEATURE, featureServlet, null, null);
 	}
 
 	protected void shutdownService() {

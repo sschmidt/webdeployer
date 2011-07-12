@@ -12,7 +12,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -65,7 +64,7 @@ public class RepositoryServlet extends HttpServlet {
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		RepositoryOperationResult result = null;
+		RepositoryModificationResult result = null;
 
 		// create repository by URI
 		if (!ServletFileUpload.isMultipartContent(req)) {
@@ -88,18 +87,18 @@ public class RepositoryServlet extends HttpServlet {
 		out.output(result.getDocument(), resp.getWriter());
 	}
 
-	private RepositoryOperationResult parseUploadRequest(HttpServletRequest req) throws FileUploadException,
+	@SuppressWarnings("unchecked")
+	private RepositoryModificationResult parseUploadRequest(HttpServletRequest req) throws FileUploadException,
 			FileNotFoundException, IOException {
-		RepositoryOperationResult result;
+		RepositoryModificationResult result = new RepositoryModificationResult();
+
 		FileItemFactory factory = new DiskFileItemFactory();
 		ServletFileUpload upload = new ServletFileUpload(factory);
-		@SuppressWarnings("unchecked")
 		List<FileItem> files = upload.parseRequest(req);
 		if (files.size() != 1) {
 			throw new FileUploadException("no file found");
 		}
 
-		result = new RepositoryOperationResult();
 		try {
 			result.addSuccess(repositoryManager.addRepository(files.get(0).getInputStream()).toString());
 		} catch (InvalidRepositoryException e) {
@@ -108,10 +107,10 @@ public class RepositoryServlet extends HttpServlet {
 		return result;
 	}
 
-	private RepositoryOperationResult parseUriAddRequest(HttpServletRequest req) throws JDOMException, IOException {
+	private RepositoryModificationResult parseUriAddRequest(HttpServletRequest req) throws JDOMException, IOException {
 		SAXBuilder builder = new SAXBuilder();
 		Document request = builder.build(req.getReader());
-		RepositoryOperationResult result = parseRequestDocument(request, Action.CREATE);
+		RepositoryModificationResult result = parseRequestDocument(request, Action.CREATE);
 		return result;
 	}
 
@@ -120,7 +119,7 @@ public class RepositoryServlet extends HttpServlet {
 		SAXBuilder builder = new SAXBuilder();
 		try {
 			Document request = builder.build(req.getReader());
-			RepositoryOperationResult result = parseRequestDocument(request, Action.DELETE);
+			RepositoryModificationResult result = parseRequestDocument(request, Action.DELETE);
 			XMLOutputter out = new XMLOutputter();
 			out.output(result.getDocument(), resp.getWriter());
 		} catch (JDOMException e) {
@@ -128,9 +127,9 @@ public class RepositoryServlet extends HttpServlet {
 		}
 	}
 
-	private RepositoryOperationResult parseRequestDocument(Document request, Action action) {
+	private RepositoryModificationResult parseRequestDocument(Document request, Action action) {
 		Element rootElement = request.getRootElement();
-		RepositoryOperationResult result = new RepositoryOperationResult();
+		RepositoryModificationResult result = new RepositoryModificationResult();
 
 		for (Object child : rootElement.getChildren()) {
 			if (child instanceof Element) {
@@ -160,66 +159,5 @@ public class RepositoryServlet extends HttpServlet {
 
 	public RepositoryManager getRepositoryManager() {
 		return repositoryManager;
-	}
-	
-	private class RepositoryOperationResult {
-		private List<String> successfulResults = new ArrayList<String>();
-		private List<ErrorInfo> failedResults = new ArrayList<ErrorInfo>();
-
-		public Document getDocument() {
-			Element root = new Element(XmlConstants.XML_ELEMENT_REPOSITORIES);
-			addSuccessfulResults(root);
-			addFailedResults(root);
-
-			return new Document(root);
-		}
-
-		private void addFailedResults(Element root) {
-			for (ErrorInfo repository : failedResults) {
-				Element bundleXml = new Element(XmlConstants.XML_ELEMENT_REPOSITORY);
-				bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_URI).addContent(repository.getRepository()));
-				bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_REASON).addContent(repository.getReason()));
-				bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_STATUS)
-						.addContent(XmlConstants.XML_VALUE_STATUS_FAILED));
-				root.addContent(bundleXml);
-			}
-		}
-
-		private void addSuccessfulResults(Element root) {
-			for (String repository : successfulResults) {
-				Element bundleXml = new Element(XmlConstants.XML_ELEMENT_REPOSITORY);
-				bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_URI).addContent(repository));
-				bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_STATUS)
-						.addContent(XmlConstants.XML_VALUE_STATUS_SUCCESSFUL));
-				root.addContent(bundleXml);
-			}
-		}
-
-		public void addSuccess(String repository) {
-			successfulResults.add(repository);
-		}
-
-		public void addFailure(String repository, String reason) {
-			failedResults.add(new ErrorInfo(repository, reason));
-		}
-	}
-
-	private class ErrorInfo {
-
-		private final String repository;
-		private final String reason;
-
-		public ErrorInfo(String repository, String reason) {
-			this.repository = repository;
-			this.reason = reason;
-		}
-
-		public String getReason() {
-			return reason;
-		}
-
-		public String getRepository() {
-			return repository;
-		}
 	}
 }

@@ -3,4 +3,5 @@
 	<implementation class="org.eclipse.rtp.httpdeployer.internal.HttpDeployerComponent" />
 	<reference name="httpService" bind="setHttpService" unbind="unsetHttpService" interface="org.osgi.service.http.HttpService" />
 	<reference name="provisioningAgent" bind="setProvisioningAgent" unbind="unsetProvisioningAgent" interface="org.eclipse.equinox.p2.core.IProvisioningAgent" />
+ <reference bind="setConfigurator" cardinality="1..1" interface="org.eclipse.equinox.internal.provisional.configurator.Configurator" name="Configurator" policy="static" unbind="unsetConfigurator"/>
 </scr:component>

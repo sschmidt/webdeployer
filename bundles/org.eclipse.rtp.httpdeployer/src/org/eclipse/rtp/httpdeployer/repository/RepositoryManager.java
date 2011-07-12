@@ -50,8 +50,7 @@ public class RepositoryManager {
 		artiRepoManager.addRepository(repository);
 	}
 
-	public URI addRepository(InputStream inputStream) throws InvalidRepositoryException, FileNotFoundException,
-			IOException {
+	public URI addRepository(InputStream inputStream) throws InvalidRepositoryException, FileNotFoundException, IOException {
 		ZipInputStream zis = new ZipInputStream(inputStream);
 		File repository = createLocalRepository(zis);
 		URI repositoryURI = repository.toURI();
@@ -60,10 +59,10 @@ public class RepositoryManager {
 		return repositoryURI;
 	}
 
-	private File createLocalRepository(ZipInputStream zis) throws InvalidRepositoryException, IOException,
-			FileNotFoundException {
-		File repository; 
-		repository = new File(System.getProperty("java.io.tmpdir") + CommonConstants.DIR_SEPARATOR + LOCAL_REPOSITORY_PREFIX + Long.toString(System.nanoTime()));
+	private File createLocalRepository(ZipInputStream zis) throws InvalidRepositoryException, IOException, FileNotFoundException {
+		File repository;
+		repository = new File(System.getProperty("java.io.tmpdir") + CommonConstants.DIR_SEPARATOR + LOCAL_REPOSITORY_PREFIX
+				+ Long.toString(System.nanoTime()));
 		if (!repository.mkdirs()) {
 			throw new IOException("error creating repository directory");
 		}
@@ -87,8 +86,7 @@ public class RepositoryManager {
 		artiRepoManager.removeRepository(repository);
 	}
 
-	private void createLocalRepositoryStructure(ZipInputStream zis, File repository) throws IOException,
-			FileNotFoundException {
+	private void createLocalRepositoryStructure(ZipInputStream zis, File repository) throws IOException, FileNotFoundException {
 		ZipEntry currentFile;
 		while ((currentFile = zis.getNextEntry()) != null) {
 			if (currentFile.isDirectory()) {
@@ -104,7 +102,8 @@ public class RepositoryManager {
 		file.mkdir();
 	}
 
-	private void createLocalFile(ZipInputStream zis, File repository, ZipEntry currentFile) throws IOException, FileNotFoundException {
+	private void createLocalFile(ZipInputStream zis, File repository, ZipEntry currentFile) throws IOException,
+			FileNotFoundException {
 		File file = new File(repository.getAbsolutePath() + CommonConstants.DIR_SEPARATOR + currentFile.getName());
 		file.createNewFile();
 		FileOutputStream fos = new FileOutputStream(file);
@@ -143,9 +142,6 @@ public class RepositoryManager {
 	public IMetadataRepositoryManager getMetadataRepositoryManager() {
 		IMetadataRepositoryManager service = (IMetadataRepositoryManager) provisioningAgent
 				.getService(IMetadataRepositoryManager.SERVICE_NAME);
-		if (service == null) {
-			throw new IllegalStateException("IMetadataRepositoryManager-Service not found");
-		}
 
 		return service;
 	}
@@ -153,9 +149,6 @@ public class RepositoryManager {
 	public IArtifactRepositoryManager getArtifactRepositoryManager() {
 		IArtifactRepositoryManager service = (IArtifactRepositoryManager) provisioningAgent
 				.getService(IArtifactRepositoryManager.SERVICE_NAME);
-		if (service == null) {
-			throw new IllegalStateException("IMetadataRepositoryManager-Service not found");
-		}
 
 		return service;
 	}

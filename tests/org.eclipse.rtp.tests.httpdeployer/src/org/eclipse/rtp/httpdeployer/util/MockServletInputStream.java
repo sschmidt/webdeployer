@@ -22,16 +22,18 @@ public class MockServletInputStream extends ServletInputStream {
 	private final InputStream is;
 
 	public MockServletInputStream(InputStream is) throws IOException {
-		BufferedReader inputReader = new BufferedReader(new InputStreamReader(is));
 		StringBuilder builder = new StringBuilder();
-		builder.append("\r\n--" + BOUNDARY + "\r\n");
-		builder.append("Content-Disposition: form-data; name=\"name\"\r\n\r\n");
-		String current;
-		while ((current = inputReader.readLine()) != null) {
-			builder.append(current + "\n");
+		if (is != null) {
+			BufferedReader inputReader = new BufferedReader(new InputStreamReader(is));
+			builder.append("\r\n--" + BOUNDARY + "\r\n");
+			builder.append("Content-Disposition: form-data; name=\"name\"\r\n\r\n");
+			String current;
+			while ((current = inputReader.readLine()) != null) {
+				builder.append(current + "\n");
+			}
+
+			builder.append("\r\n--" + BOUNDARY + "--\r\n");
 		}
-		
-		builder.append("\r\n--" + BOUNDARY + "--\r\n");
 
 		this.is = new ByteArrayInputStream(builder.toString().getBytes());
 	}
@@ -40,27 +42,27 @@ public class MockServletInputStream extends ServletInputStream {
 	public int read() throws IOException {
 		return is.read();
 	}
-	
+
 	@Override
 	public int read(byte[] b) throws IOException {
 		return is.read(b);
 	}
-	
+
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException {
 		return is.read(b, off, len);
 	}
-	
+
 	@Override
 	public int available() throws IOException {
 		return is.available();
 	}
-	
+
 	@Override
 	public long skip(long n) throws IOException {
 		return is.skip(n);
 	}
-	
+
 	@Override
 	public boolean markSupported() {
 		return is.markSupported();

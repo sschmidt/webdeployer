@@ -18,6 +18,9 @@ public class XmlConstants {
 	public static final String XML_ELEMENT_REPOSITORIES = "repositories";
 	public static final String XML_ELEMENT_STATUS = "status";
 	public static final String XML_ELEMENT_REASON = "reason";
+	public static final String XML_ELEMENT_FEATURE = "feature";
+	public static final String XML_ELEMENT_FEATURES = "features";
+	public static final String XML_ELEMENT_ACTION = "action"; 
 	public static final String XML_VALUE_STATUS_FAILED = "failed";
 	public static final String XML_VALUE_STATUS_SUCCESSFUL = "successful";
 }

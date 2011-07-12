@@ -148,7 +148,16 @@ public class RepositoryServletTest {
 		repositoryServlet.doPost(requestMock, responseMock);
 		verify(responseMock).sendError(400);
 	}
-	
+
+	@Test
+	public void doInvalidMultipartRequestTest() throws ServletException, IOException {
+		when(requestMock.getMethod()).thenReturn("POST");
+		when(requestMock.getContentType()).thenReturn(ServletFileUpload.MULTIPART_FORM_DATA + ";boundary=boundary");
+		when(requestMock.getInputStream()).thenReturn(new MockServletInputStream(null));
+		repositoryServlet.doPost(requestMock, responseMock);
+		verify(responseMock).sendError(400);
+	}
+
 	@Test
 	public void doValidMultipartUploadTest() throws Exception {
 		when(requestMock.getMethod()).thenReturn("POST");

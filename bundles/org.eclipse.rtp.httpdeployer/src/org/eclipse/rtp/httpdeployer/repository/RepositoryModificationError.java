@@ -6,10 +6,23 @@
  * 
  * Contributors: Sebastian Schmidt - initial API and implementation
  ******************************************************************************/
-package org.eclipse.rtp.httpdeployer.internal;
+package org.eclipse.rtp.httpdeployer.repository;
 
-public class CommonConstants {
-	public static final String RESPONSE_CONTENT_TYPE = "text/xml";
-	public static final String DIR_SEPARATOR = "/";
-	public static final String DEFAULT_PROFILE_ID = "_HTTPDEPLOY_";
+public class RepositoryModificationError {
+
+	private final String repository;
+	private final String reason;
+
+	public RepositoryModificationError(String repository, String reason) {
+		this.repository = repository;
+		this.reason = reason;
+	}
+
+	public String getReason() {
+		return reason;
+	}
+
+	public String getRepository() {
+		return repository;
+	}
 }
