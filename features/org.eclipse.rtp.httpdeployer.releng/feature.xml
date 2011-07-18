@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="org.eclipse.rtp.httpdeployer.releng"
+      id="org.eclipse.rtp.httpdeployer"
       label="Http Deployer"
       version="0.1">
 
@@ -16,34 +16,101 @@
       [Enter License Description here.]
    </license>
 
-   <includes
-         id="org.eclipse.equinox.p2.core.feature"
-         version="0.0.0"/>
-
-   <includes
-         id="org.eclipse.equinox.core.feature"
-         version="0.0.0"/>
-
    <requires>
-      <import plugin="javax.servlet" version="2.5.0" match="greaterOrEqual"/>
-      <import plugin="org.apache.commons.fileupload"/>
-      <import plugin="org.apache.commons.io"/>
-      <import plugin="org.eclipse.equinox.p2.core"/>
-      <import plugin="org.eclipse.equinox.p2.director"/>
-      <import plugin="org.eclipse.equinox.p2.engine"/>
-      <import plugin="org.eclipse.equinox.p2.metadata"/>
-      <import plugin="org.eclipse.equinox.p2.operations"/>
-      <import plugin="org.eclipse.equinox.p2.repository"/>
-      <import plugin="org.eclipse.osgi"/>
-      <import plugin="org.eclipse.equinox.simpleconfigurator"/>
       <import plugin="org.jdom"/>
-      <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="org.eclipse.core.jobs"/>
       <import plugin="org.eclipse.osgi.services"/>
+      <import plugin="org.eclipse.osgi" version="3.7.0" match="compatible"/>
+      <import plugin="org.eclipse.core.jobs" version="3.2.0" match="compatible"/>
+      <import plugin="org.eclipse.equinox.preferences" version="3.4.0" match="compatible"/>
+      <import plugin="org.eclipse.core.contenttype" version="3.3.0" match="compatible"/>
+      <import plugin="org.eclipse.equinox.app" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.sat4j.core" version="2.2.0"/>
+      <import plugin="org.sat4j.pb" version="2.2.0"/>
+      <import plugin="org.eclipse.equinox.p2.metadata" version="2.0.0" match="compatible"/>
+      <import plugin="org.eclipse.equinox.p2.metadata.repository"/>
+      <import plugin="org.eclipse.equinox.p2.core" version="2.0.0" match="compatible"/>
+      <import plugin="org.eclipse.equinox.common" version="3.6.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
          id="org.eclipse.rtp.httpdeployer"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="javax.servlet"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.mortbay.jetty.server"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.mortbay.jetty.util"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.apache.commons.fileupload"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.apache.commons.io"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.core.jobs"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.core.runtime"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.core.contenttype"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.equinox.http.jetty"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.equinox.http.servlet"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.jdom"
          download-size="0"
          install-size="0"
          version="0.0.0"

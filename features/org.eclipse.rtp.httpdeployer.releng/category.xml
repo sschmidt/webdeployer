@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/org.eclipse.rtp.httpdeployer.releng_0.1.0.jar" id="org.eclipse.rtp.httpdeployer.releng" version="0.1">
+      <category name="org.eclipse.rtp.httpdeployer"/>
+   </feature>
+   <category-def name="org.eclipse.rtp.httpdeployer" label="Http Deployer"/>
+</site>
