@@ -19,13 +19,19 @@ import org.eclipse.equinox.p2.engine.ProvisioningContext;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.equinox.p2.operations.InstallOperation;
+import org.eclipse.equinox.p2.operations.ProfileChangeOperation;
 import org.eclipse.equinox.p2.operations.ProvisioningJob;
 import org.eclipse.equinox.p2.operations.ProvisioningSession;
+import org.eclipse.equinox.p2.operations.UninstallOperation;
 import org.eclipse.equinox.p2.query.QueryUtil;
 import org.eclipse.rtp.httpdeployer.repository.RepositoryManager;
 
 @SuppressWarnings("restriction")
 public class FeatureManager {
+	public enum Action {
+		UNINSTALL, INSTALL
+	}
+
 	private final IProvisioningAgent provisioningAgent;
 	private final NullProgressMonitor installationProgressMonitor;
 	private final RepositoryManager repositoryManager;
@@ -38,21 +44,50 @@ public class FeatureManager {
 		this.installationProgressMonitor = new NullProgressMonitor();
 	}
 
-	public Collection<IInstallableUnit> installFeature(String featureId, String version) throws FeatureInstallException {
+	public void installFeature(String featureId, String version) throws FeatureInstallException {
+		ProfileChangeOperation operation = resolveProfileChangeOperation(featureId, version, Action.INSTALL);
+		executeProfileChangeOperation(operation);
+		applyChanges();
+	}
+
+	public void uninstallFeature(String featureId, String version) throws FeatureInstallException {
+		ProfileChangeOperation operation = resolveProfileChangeOperation(featureId, version, Action.UNINSTALL);
+		executeProfileChangeOperation(operation);
+		applyChanges();
+	}
+
+	private ProfileChangeOperation resolveProfileChangeOperation(String featureId, String version, Action action)
+			throws FeatureInstallException {
 		ProvisioningSession session = new ProvisioningSession(provisioningAgent);
 		ProvisioningContext context = createProvisioningContext();
 
 		Collection<IInstallableUnit> units = getInstallableUnits(context, featureId, version);
-		InstallOperation installOperation = getInstallOperation(context, session, units);
-		executeInstallOperation(installOperation);
-		applyChanges();
+		ProfileChangeOperation operation = getOperation(session, units, action);
+		operation.setProvisioningContext(context);
+		resolveOperation(operation);
 
-		return units;
+		return operation;
 	}
 
-	public Collection<IInstallableUnit> uninstallFeature(String name, String version) {
-		// TODO: continue;
-		return null;
+	private ProfileChangeOperation getOperation(ProvisioningSession session, Collection<IInstallableUnit> units, Action action)
+			throws FeatureInstallException {
+		ProfileChangeOperation operation;
+		if (action.equals(Action.UNINSTALL)) {
+			operation = new UninstallOperation(session, units);
+		} else {
+			operation = new InstallOperation(session, units);
+		}
+
+		return operation;
+	}
+
+	private void resolveOperation(ProfileChangeOperation uninstallOperation) throws FeatureInstallException {
+		IStatus result = uninstallOperation.resolveModal(null);
+
+		if (!result.isOK()) {
+			String errorMessage = generateErrorMessage(result);
+			throw new FeatureInstallException(errorMessage);
+		}
 	}
 
 	private void applyChanges() throws FeatureInstallException {
@@ -70,27 +105,13 @@ public class FeatureManager {
 		return context;
 	}
 
-	protected void executeInstallOperation(InstallOperation installOperation) throws FeatureInstallException {
-		ProvisioningJob provisioningJob = installOperation.getProvisioningJob(new NullProgressMonitor());
+	protected void executeProfileChangeOperation(ProfileChangeOperation operation) throws FeatureInstallException {
+		ProvisioningJob provisioningJob = operation.getProvisioningJob(new NullProgressMonitor());
 		IStatus result = provisioningJob.runModal(new NullProgressMonitor());
 
 		if (!result.isOK()) {
 			throw new FeatureInstallException(result.getMessage());
 		}
-	}
-
-	protected InstallOperation getInstallOperation(ProvisioningContext context, ProvisioningSession session,
-			Collection<IInstallableUnit> units) throws FeatureInstallException {
-		InstallOperation installOperation = new InstallOperation(session, units);
-		installOperation.setProvisioningContext(context);
-		IStatus result = installOperation.resolveModal(null);
-
-		if (!result.isOK()) {
-			String errorMessage = generateErrorMessage(result);
-			throw new FeatureInstallException(errorMessage);
-		}
-
-		return installOperation;
 	}
 
 	private String generateErrorMessage(IStatus result) {

@@ -24,6 +24,7 @@ import org.osgi.service.http.NamespaceException;
 
 import static org.junit.Assert.assertEquals;
 
+@SuppressWarnings("restriction")
 public class HttpDeployerComponentTest {
 
 	@Mock
