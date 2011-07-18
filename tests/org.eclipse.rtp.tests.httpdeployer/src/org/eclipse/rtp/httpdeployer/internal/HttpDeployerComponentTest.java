@@ -8,21 +8,25 @@
  ******************************************************************************/
 package org.eclipse.rtp.httpdeployer.internal;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
+import java.util.Dictionary;
+
+import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 
 import org.eclipse.equinox.internal.provisional.configurator.Configurator;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
-import org.eclipse.rtp.httpdeployer.repository.RepositoryServlet;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
-
-import static org.junit.Assert.assertEquals;
 
 @SuppressWarnings("restriction")
 public class HttpDeployerComponentTest {
@@ -32,7 +36,7 @@ public class HttpDeployerComponentTest {
 
 	@Mock
 	HttpService service;
-	
+
 	@Mock
 	Configurator configurator;
 
@@ -49,15 +53,25 @@ public class HttpDeployerComponentTest {
 		component.setConfigurator(configurator);
 		component.startService();
 
-		verify(service).registerServlet(HttpDeployerComponent.ALIAS_BUNDLE, component.bundleServlet, null, null);
-		verify(service).registerServlet(HttpDeployerComponent.ALIAS_REPOSITORY, component.repositoryServlet, null, null);
-		RepositoryServlet repositoryServlet = component.repositoryServlet;
-		assertEquals(agent, repositoryServlet.getRepositoryManager().getProvisioningAgent());
+		verify(service).registerServlet(eq(HttpDeployerComponent.ALIAS_REPOSITORY), any(Servlet.class), any(Dictionary.class),
+				any(HttpContext.class));
+		verify(service).registerServlet(eq(HttpDeployerComponent.ALIAS_BUNDLE), any(Servlet.class), any(Dictionary.class),
+				any(HttpContext.class));
+		verify(service).registerServlet(eq(HttpDeployerComponent.ALIAS_FEATURE), any(Servlet.class), any(Dictionary.class),
+				any(HttpContext.class));
+		verify(service).registerServlet(eq(HttpDeployerComponent.ALIAS_SYSTEM), any(Servlet.class), any(Dictionary.class),
+				any(HttpContext.class));
+		verify(service).registerServlet(eq(HttpDeployerComponent.ALIAS_BUNDLE_MANAGE), any(Servlet.class), any(Dictionary.class),
+				any(HttpContext.class));
+
 		assertEquals(configurator, component.configurator);
 
 		component.shutdownService();
 		verify(service).unregister(HttpDeployerComponent.ALIAS_BUNDLE);
 		verify(service).unregister(HttpDeployerComponent.ALIAS_REPOSITORY);
+		verify(service).unregister(HttpDeployerComponent.ALIAS_BUNDLE_MANAGE);
+		verify(service).unregister(HttpDeployerComponent.ALIAS_FEATURE);
+		verify(service).unregister(HttpDeployerComponent.ALIAS_SYSTEM);
 
 		component.unsetHttpService(service);
 		component.unsetProvisioningAgent(agent);

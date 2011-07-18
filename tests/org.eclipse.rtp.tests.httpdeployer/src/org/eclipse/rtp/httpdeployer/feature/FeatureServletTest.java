@@ -63,7 +63,6 @@ public class FeatureServletTest {
 	@Test
 	public void doInstallFeatureTest() throws ServletException, IOException, JDOMException, FeatureInstallException {
 		when(requestMock.getReader()).thenReturn(new BufferedReader(new StringReader(VALID_INSTALL_REQUEST)));
-		when(featureManager.installFeature("installMock", "1.0")).thenReturn(null);
 		featureServlet.doPost(requestMock, responseMock);
 
 		SAXBuilder builder = new SAXBuilder();
@@ -95,7 +94,6 @@ public class FeatureServletTest {
 	@Test
 	public void doValidUninstallFeatureTest() throws ServletException, IOException, JDOMException, FeatureInstallException {
 		when(requestMock.getReader()).thenReturn(new BufferedReader(new StringReader(VALID_INSTALL_REQUEST)));
-		when(featureManager.uninstallFeature("installMock", "1.0")).thenReturn(null);
 		featureServlet.doDelete(requestMock, responseMock);
 
 		SAXBuilder builder = new SAXBuilder();

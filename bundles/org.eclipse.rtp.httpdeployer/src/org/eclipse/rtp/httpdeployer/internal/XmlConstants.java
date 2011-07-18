@@ -9,18 +9,19 @@
 package org.eclipse.rtp.httpdeployer.internal;
 
 public class XmlConstants {
-	public static final String XML_ELEMENT_BUNDLES = "bundles";
-	public static final String XML_ELEMENT_BUNDLE = "bundle";
-	public static final String XML_ELEMENT_NAME = "name";
-	public static final String XML_ELEMENT_VERSION = "version";
-	public static final String XML_ELEMENT_REPOSITORY = "repository";
-	public static final String XML_ELEMENT_URI = "uri";
-	public static final String XML_ELEMENT_REPOSITORIES = "repositories";
-	public static final String XML_ELEMENT_STATUS = "status";
-	public static final String XML_ELEMENT_REASON = "reason";
-	public static final String XML_ELEMENT_FEATURE = "feature";
-	public static final String XML_ELEMENT_FEATURES = "features";
-	public static final String XML_ELEMENT_ACTION = "action"; 
-	public static final String XML_VALUE_STATUS_FAILED = "failed";
-	public static final String XML_VALUE_STATUS_SUCCESSFUL = "successful";
+	public static final String XML_ELEMENT_BUNDLES = "bundles"; //$NON-NLS-N$
+	public static final String XML_ELEMENT_BUNDLE = "bundle"; //$NON-NLS-N$
+	public static final String XML_ELEMENT_NAME = "name"; //$NON-NLS-N$
+	public static final String XML_ELEMENT_VERSION = "version"; //$NON-NLS-N$
+	public static final String XML_ELEMENT_REPOSITORY = "repository"; //$NON-NLS-N$
+	public static final String XML_ELEMENT_URI = "uri"; //$NON-NLS-N$
+	public static final String XML_ELEMENT_REPOSITORIES = "repositories"; //$NON-NLS-N$
+	public static final String XML_ELEMENT_STATUS = "status"; //$NON-NLS-N$
+	public static final String XML_ELEMENT_REASON = "reason"; //$NON-NLS-N$
+	public static final String XML_ELEMENT_FEATURE = "feature"; //$NON-NLS-N$
+	public static final String XML_ELEMENT_FEATURES = "features"; //$NON-NLS-N$
+	public static final String XML_ELEMENT_ACTION = "action"; //$NON-NLS-N$
+	public static final String XML_VALUE_STATUS_FAILED = "failed"; //$NON-NLS-N$
+	public static final String XML_VALUE_STATUS_SUCCESSFUL = "successful"; //$NON-NLS-N$
+	public static final String XML_ELEMENT_SYSTEM = "system"; //$NON-NLS-N$
 }

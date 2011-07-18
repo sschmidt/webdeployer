@@ -26,9 +26,9 @@ import org.eclipse.rtp.httpdeployer.internal.CommonConstants;
 
 public class RepositoryManager {
 
-	private static final String LOCAL_REPOSITORY_PREFIX = "repo_";
-	private static final String FILENAME_CONTENT = "content.jar";
-	private static final String FILENAME_ARTIFACTS = "artifacts.jar";
+	private static final String LOCAL_REPOSITORY_PREFIX = "repo_"; //$NON-NLS-N$
+	private static final String FILENAME_CONTENT = "content.jar"; //$NON-NLS-N$
+	private static final String FILENAME_ARTIFACTS = "artifacts.jar"; //$NON-NLS-N$
 	private static final int FILE_BUFFER = 8192;
 	private final IProvisioningAgent provisioningAgent;
 

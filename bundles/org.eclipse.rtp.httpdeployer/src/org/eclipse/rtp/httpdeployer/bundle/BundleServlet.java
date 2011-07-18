@@ -29,8 +29,8 @@ import org.osgi.framework.FrameworkUtil;
 public class BundleServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 3749930485862030632L;
-	protected static final String REQUEST_PATH_RESOLVED_BUNDLES = "/resolved";
-	protected static final String REQUEST_PATH_ACTIVE_BUNDLES = "/active";
+	protected static final String REQUEST_PATH_RESOLVED_BUNDLES = "/resolved"; //$NON-NLS-N$
+	protected static final String REQUEST_PATH_ACTIVE_BUNDLES = "/active"; //$NON-NLS-N$
 	protected static final int ALL_BUNDLES = 0;
 
 	@Override

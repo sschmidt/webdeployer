@@ -9,7 +9,6 @@
 package org.eclipse.rtp.httpdeployer.internal;
 
 public class CommonConstants {
-	public static final String RESPONSE_CONTENT_TYPE = "text/xml";
-	public static final String DIR_SEPARATOR = "/";
-	public static final String DEFAULT_PROFILE_ID = "_HTTPDEPLOY_";
+	public static final String RESPONSE_CONTENT_TYPE = "text/xml"; //$NON-NLS-N$
+	public static final String DIR_SEPARATOR = "/"; //$NON-NLS-N$
 }

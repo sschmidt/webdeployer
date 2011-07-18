@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.rtp.httpdeployer"
       label="Http Deployer"
-      version="0.1">
+      version="0.2">
 
    <description url="http://www.example.com/description">
       [Enter Feature Description here.]

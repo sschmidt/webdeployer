@@ -134,7 +134,7 @@ public class RepositoryServlet extends HttpServlet {
 		for (Object child : rootElement.getChildren()) {
 			if (child instanceof Element) {
 				Element currentElement = (Element) child;
-				if (currentElement.getName().equals("repository")) {
+				if (currentElement.getName().equals(XmlConstants.XML_ELEMENT_REPOSITORY)) {
 					try {
 						URI repository = new URI(currentElement.getText());
 						performRepositoryAction(repository, action);

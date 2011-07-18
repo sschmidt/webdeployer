@@ -33,7 +33,6 @@ public class FeatureManager {
 	}
 
 	private final IProvisioningAgent provisioningAgent;
-	private final NullProgressMonitor installationProgressMonitor;
 	private final RepositoryManager repositoryManager;
 	private final Configurator configurator;
 
@@ -41,7 +40,6 @@ public class FeatureManager {
 		this.provisioningAgent = provisioningAgent;
 		this.repositoryManager = repositoryManager;
 		this.configurator = configurator;
-		this.installationProgressMonitor = new NullProgressMonitor();
 	}
 
 	public void installFeature(String featureId, String version) throws FeatureInstallException {
@@ -81,8 +79,8 @@ public class FeatureManager {
 		return operation;
 	}
 
-	private void resolveOperation(ProfileChangeOperation uninstallOperation) throws FeatureInstallException {
-		IStatus result = uninstallOperation.resolveModal(null);
+	private void resolveOperation(ProfileChangeOperation operation) throws FeatureInstallException {
+		IStatus result = operation.resolveModal(null);
 
 		if (!result.isOK()) {
 			String errorMessage = generateErrorMessage(result);
@@ -107,6 +105,10 @@ public class FeatureManager {
 
 	protected void executeProfileChangeOperation(ProfileChangeOperation operation) throws FeatureInstallException {
 		ProvisioningJob provisioningJob = operation.getProvisioningJob(new NullProgressMonitor());
+		if (provisioningJob == null) {
+			return;
+		}
+
 		IStatus result = provisioningJob.runModal(new NullProgressMonitor());
 
 		if (!result.isOK()) {
@@ -124,8 +126,8 @@ public class FeatureManager {
 	}
 
 	protected Collection<IInstallableUnit> getInstallableUnits(ProvisioningContext context, String id, String version) {
-		Collection<IInstallableUnit> toInstall = context.getMetadata(installationProgressMonitor)
-				.query(QueryUtil.createIUQuery(id, Version.create(version)), installationProgressMonitor).toUnmodifiableSet();
+		Collection<IInstallableUnit> toInstall = context.getMetadata(null)
+				.query(QueryUtil.createIUQuery(id, Version.create(version)), null).toUnmodifiableSet();
 		return toInstall;
 	}
 }
