@@ -44,8 +44,8 @@ public class RepositoryServletTest {
 
 	private static final String TEST_REPOSITORY_URI = "file:/tmp/playyard";
 
-	private static final String VALID_DELETE_CREATE_REQUEST = "<repositories><repository>" + TEST_REPOSITORY_URI
-			+ "</repository></repositories>";
+	private static final String VALID_DELETE_CREATE_REQUEST = "<repositories><repository><uri>" + TEST_REPOSITORY_URI
+			+ "</uri></repository></repositories>";
 
 	private RepositoryServlet repositoryServlet;
 
@@ -97,7 +97,6 @@ public class RepositoryServletTest {
 		SAXBuilder builder = new SAXBuilder();
 		Document request = builder.build(new ByteArrayInputStream(responseWriter.toString().getBytes()));
 		Element repo = (Element) request.getRootElement().getChildren().get(0);
-
 		assertEquals(TEST_REPOSITORY_URI, repo.getChildText("uri"));
 		assertEquals("successful", repo.getChildText("status"));
 

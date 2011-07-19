@@ -37,8 +37,8 @@ public class RepositoryServlet extends HttpServlet {
 	private static final long serialVersionUID = -4190823339335383710L;
 	private final RepositoryManager repositoryManager;
 
-	private enum Action {
-		DELETE, CREATE
+	public enum Action {
+		REMOVE, ADD
 	}
 
 	public RepositoryServlet(RepositoryManager repositoryManager) {
@@ -100,9 +100,9 @@ public class RepositoryServlet extends HttpServlet {
 		}
 
 		try {
-			result.addSuccess(repositoryManager.addRepository(files.get(0).getInputStream()).toString());
+			result.addSuccess(repositoryManager.addRepository(files.get(0).getInputStream()).toString(), Action.ADD);
 		} catch (InvalidRepositoryException e) {
-			result.addFailure("local", e.getMessage());
+			result.addFailure("local", e.getMessage(), Action.ADD);
 		}
 		return result;
 	}
@@ -110,8 +110,7 @@ public class RepositoryServlet extends HttpServlet {
 	private RepositoryModificationResult parseUriAddRequest(HttpServletRequest req) throws JDOMException, IOException {
 		SAXBuilder builder = new SAXBuilder();
 		Document request = builder.build(req.getReader());
-		RepositoryModificationResult result = parseRequestDocument(request, Action.CREATE);
-		return result;
+		return parseRequestDocument(request, Action.ADD);
 	}
 
 	@Override
@@ -119,7 +118,7 @@ public class RepositoryServlet extends HttpServlet {
 		SAXBuilder builder = new SAXBuilder();
 		try {
 			Document request = builder.build(req.getReader());
-			RepositoryModificationResult result = parseRequestDocument(request, Action.DELETE);
+			RepositoryModificationResult result = parseRequestDocument(request, Action.REMOVE);
 			XMLOutputter out = new XMLOutputter();
 			out.output(result.getDocument(), resp.getWriter());
 		} catch (JDOMException e) {
@@ -135,12 +134,13 @@ public class RepositoryServlet extends HttpServlet {
 			if (child instanceof Element) {
 				Element currentElement = (Element) child;
 				if (currentElement.getName().equals(XmlConstants.XML_ELEMENT_REPOSITORY)) {
+					String repositoryPath = currentElement.getChildText(XmlConstants.XML_ELEMENT_URI);
 					try {
-						URI repository = new URI(currentElement.getText());
+						URI repository = new URI(repositoryPath);
 						performRepositoryAction(repository, action);
-						result.addSuccess(currentElement.getText());
+						result.addSuccess(repositoryPath, action);
 					} catch (URISyntaxException e) {
-						result.addFailure(currentElement.getText(), e.getMessage());
+						result.addFailure(repositoryPath, e.getMessage(), action);
 					}
 				}
 			}
@@ -150,7 +150,7 @@ public class RepositoryServlet extends HttpServlet {
 	}
 
 	private void performRepositoryAction(URI repository, Action action) {
-		if (action.equals(Action.CREATE)) {
+		if (action.equals(Action.ADD)) {
 			repositoryManager.addRepository(repository);
 		} else {
 			repositoryManager.removeRepository(repository);

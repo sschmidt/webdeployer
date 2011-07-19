@@ -12,46 +12,56 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
+import org.eclipse.rtp.httpdeployer.repository.RepositoryServlet.Action;
 import org.jdom.Document;
 import org.jdom.Element;
 
 public class RepositoryModificationResult {
-	private final List<String> successfulResults = new ArrayList<String>();
-	private final List<RepositoryModificationError> failedResults = new ArrayList<RepositoryModificationError>();
+	private final List<SingleRepositoryModificationResult> results = new ArrayList<SingleRepositoryModificationResult>();
 
 	public Document getDocument() {
 		Element root = new Element(XmlConstants.XML_ELEMENT_REPOSITORIES);
-		addSuccessfulResults(root);
-		addFailedResults(root);
+		for (SingleRepositoryModificationResult result : results) {
+			root.addContent(result.getDocument());
+		}
 
 		return new Document(root);
 	}
 
-	private void addFailedResults(Element root) {
-		for (RepositoryModificationError repository : failedResults) {
-			Element bundleXml = new Element(XmlConstants.XML_ELEMENT_REPOSITORY);
-			bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_URI).addContent(repository.getRepository()));
-			bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_REASON).addContent(repository.getReason()));
-			bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_STATUS).addContent(XmlConstants.XML_VALUE_STATUS_FAILED));
-			root.addContent(bundleXml);
+	public void addSuccess(String repository, Action action) {
+		results.add(new SingleRepositoryModificationResult(repository, null, action));
+	}
+
+	public void addFailure(String repository, String reason, Action action) {
+		results.add(new SingleRepositoryModificationResult(repository, reason, action));
+	}
+
+	private class SingleRepositoryModificationResult {
+
+		private final Action action;
+		private final String repository;
+		private final String reason;
+
+		public SingleRepositoryModificationResult(String repository, String reason, Action action) {
+			this.repository = repository;
+			this.reason = reason;
+			this.action = action;
 		}
-	}
 
-	private void addSuccessfulResults(Element root) {
-		for (String repository : successfulResults) {
-			Element bundleXml = new Element(XmlConstants.XML_ELEMENT_REPOSITORY);
-			bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_URI).addContent(repository));
-			bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_STATUS)
-					.addContent(XmlConstants.XML_VALUE_STATUS_SUCCESSFUL));
-			root.addContent(bundleXml);
+		public Element getDocument() {
+			Element xmlResult = new Element(XmlConstants.XML_ELEMENT_REPOSITORY);
+			xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_URI).addContent(repository));
+			xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_ACTION).addContent(action.toString()));
+			if (reason == null) {
+				xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_STATUS)
+						.addContent(XmlConstants.XML_VALUE_STATUS_SUCCESSFUL));
+			} else {
+				xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_STATUS)
+						.addContent(XmlConstants.XML_VALUE_STATUS_FAILED));
+				xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_REASON).addContent(reason));
+			}
+
+			return xmlResult;
 		}
-	}
-
-	public void addSuccess(String repository) {
-		successfulResults.add(repository);
-	}
-
-	public void addFailure(String repository, String reason) {
-		failedResults.add(new RepositoryModificationError(repository, reason));
 	}
 }
