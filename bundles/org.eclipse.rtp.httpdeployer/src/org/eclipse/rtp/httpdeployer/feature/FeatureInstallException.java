@@ -13,6 +13,7 @@ public class FeatureInstallException extends Exception {
 	private static final long serialVersionUID = 7654279780139556052L;
 
 	public FeatureInstallException(Exception e) {
+	  // TODO: Not tested
 		super(e);
 	}
 

@@ -87,16 +87,16 @@ public class RepositoryServlet extends HttpServlet {
 		out.output(result.getDocument(), resp.getWriter());
 	}
 
-	@SuppressWarnings("unchecked")
 	private RepositoryModificationResult parseUploadRequest(HttpServletRequest req) throws FileUploadException,
 			FileNotFoundException, IOException {
 		RepositoryModificationResult result = new RepositoryModificationResult();
 
 		FileItemFactory factory = new DiskFileItemFactory();
 		ServletFileUpload upload = new ServletFileUpload(factory);
+		@SuppressWarnings("unchecked")
 		List<FileItem> files = upload.parseRequest(req);
 		if (files.size() != 1) {
-			throw new FileUploadException("no file found");
+			throw new FileUploadException("File not found");
 		}
 
 		try {
@@ -140,6 +140,7 @@ public class RepositoryServlet extends HttpServlet {
 						performRepositoryAction(repository, action);
 						result.addSuccess(repositoryPath, action);
 					} catch (URISyntaxException e) {
+					  // TODO: Not tested
 						result.addFailure(repositoryPath, e.getMessage(), action);
 					}
 				}
@@ -149,6 +150,7 @@ public class RepositoryServlet extends HttpServlet {
 		return result;
 	}
 
+	
 	private void performRepositoryAction(URI repository, Action action) {
 		if (action.equals(Action.ADD)) {
 			repositoryManager.addRepository(repository);
@@ -157,6 +159,7 @@ public class RepositoryServlet extends HttpServlet {
 		}
 	}
 
+	   // TODO: Not tested
 	public RepositoryManager getRepositoryManager() {
 		return repositoryManager;
 	}

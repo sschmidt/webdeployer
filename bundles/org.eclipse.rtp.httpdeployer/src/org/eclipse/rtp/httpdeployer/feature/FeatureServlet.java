@@ -64,6 +64,7 @@ public class FeatureServlet extends HttpServlet {
 		out.output(result.getDocument(), resp.getWriter());
 	}
 
+	// TODO: Three nesting levels. Maybe this method can be splitted?
 	private FeatureModificationResult parseRequest(Document request, FeatureModificationResult.Action action)
 			throws JDOMException {
 		Element rootElement = request.getRootElement();
@@ -94,6 +95,7 @@ public class FeatureServlet extends HttpServlet {
 				result.addSuccess(name, version, action);
 			}
 		} catch (FeatureInstallException e) {
+		    // TODO: Not tested
 			result.addFailed(name, version, action, e);
 		}
 	}

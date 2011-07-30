@@ -16,7 +16,7 @@ import org.eclipse.rtp.httpdeployer.repository.RepositoryServlet.Action;
 import org.jdom.Document;
 import org.jdom.Element;
 
-public class RepositoryModificationResult {
+public  class RepositoryModificationResult {
 	private final List<SingleRepositoryModificationResult> results = new ArrayList<SingleRepositoryModificationResult>();
 
 	public Document getDocument() {
@@ -42,7 +42,7 @@ public class RepositoryModificationResult {
 		private final String repository;
 		private final String reason;
 
-		public SingleRepositoryModificationResult(String repository, String reason, Action action) {
+		private SingleRepositoryModificationResult(String repository, String reason, Action action) {
 			this.repository = repository;
 			this.reason = reason;
 			this.action = action;

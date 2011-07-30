@@ -58,7 +58,12 @@ public class HttpDeployerComponent {
 		this.provisioningAgent = null;
 	}
 
+	// TODO: Spliting a method intp three optical parts is a sign for splitting the method into three
+	// methods.
 	protected void startService() throws ServletException, NamespaceException {
+	    // TODO: Just a thought, but what about creating an webdeployer app initializer that makes all
+	    // this registration and initalization stuff. This would fit more with the Single
+	    // Responsibility Principle.
 		RepositoryManager repositoryManager = new RepositoryManager(provisioningAgent);
 		FeatureManager featureManager = new FeatureManager(provisioningAgent, repositoryManager, configurator);
 

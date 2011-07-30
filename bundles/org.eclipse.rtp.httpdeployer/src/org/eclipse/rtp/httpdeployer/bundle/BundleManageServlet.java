@@ -23,14 +23,20 @@ import org.jdom.output.XMLOutputter;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 
+// TODO: Manage is not a good word for a type because its not a noun.
 public class BundleManageServlet extends BundleServlet {
-
+  
+    // TODO: There are other Action Enums. Maybe these can be merged?
 	public enum Action {
 		START, STOP, UNINSTALL
 	}
 
 	private static final long serialVersionUID = -4494496143821074375L;
 
+	// TODO: The pattern of this method occurs very often in your code. I think every Servlet does 
+	// implement it? There is also a hint because the exception handling of these methods is always
+	// the same. This is a sign to encapsulate this behaviour in a util or some kind of an OutputHandler
+	// or something similar.
 	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
@@ -53,6 +59,8 @@ public class BundleManageServlet extends BundleServlet {
 		}
 	}
 
+	// TODO: Nesting Level of three.
+	// TODO: Almost the same method exists in the RepositoryServlet. Eliminate Code Duplication?
 	private Document parseRequest(HttpServletRequest request, Action action) throws JDOMException, IOException {
 		Document document = parseXmlRequest(request);
 		Element rootElement = document.getRootElement();
@@ -99,6 +107,7 @@ public class BundleManageServlet extends BundleServlet {
 		}
 	}
 
+	// TODO: Extracts this to a util? It also exists more than once right?
 	private Document parseXmlRequest(HttpServletRequest request) throws JDOMException, IOException {
 		SAXBuilder builder = new SAXBuilder();
 		Document xmlDocument = builder.build(request.getReader());

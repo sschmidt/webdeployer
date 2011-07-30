@@ -25,6 +25,7 @@ public class SystemServlet extends HttpServlet {
 	private static final long serialVersionUID = 3404658151450270259L;
 	private static final String REQUEST_PATH_VERSION = "/-version"; //$NON-NLS-N$
 
+    // TODO: Not tested	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		resp.setContentType(CommonConstants.RESPONSE_CONTENT_TYPE);

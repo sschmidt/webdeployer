@@ -64,6 +64,7 @@ public class RepositoryManager {
 		repository = new File(System.getProperty("java.io.tmpdir") + CommonConstants.DIR_SEPARATOR + LOCAL_REPOSITORY_PREFIX
 				+ Long.toString(System.nanoTime()));
 		if (!repository.mkdirs()) {
+		    // TODO: Not tested
 			throw new IOException("error creating repository directory");
 		}
 		createLocalRepositoryStructure(zis, repository);
@@ -153,6 +154,7 @@ public class RepositoryManager {
 		return service;
 	}
 
+	// TODO: Not tested
 	public IProvisioningAgent getProvisioningAgent() {
 		return provisioningAgent;
 	}

@@ -89,6 +89,7 @@ public class BundleServlet extends HttpServlet {
 		return validBundles;
 	}
 
+	// TODO: Not tested
 	protected Bundle[] receiveBundlesFromContext() {
 		Bundle currentBundle = FrameworkUtil.getBundle(getClass());
 		BundleContext context = currentBundle.getBundleContext();

@@ -27,6 +27,7 @@ public class FeatureModificationResult {
 		results.add(new SingleFeatureModificationResult(name, version, action));
 	}
 
+	// TODO: Not tested
 	public void addFailed(String name, String version, Action action, FeatureInstallException e) {
 		results.add(new SingleFeatureModificationResult(name, version, action, e));
 	}
@@ -40,6 +41,7 @@ public class FeatureModificationResult {
 		return new Document(root);
 	}
 
+	// TODO: Not tested
 	public Integer getResultSize() {
 		return results.size();
 	}
@@ -71,6 +73,7 @@ public class FeatureModificationResult {
 				xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_STATUS)
 						.addContent(XmlConstants.XML_VALUE_STATUS_SUCCESSFUL));
 			} else {
+			   // TODO: Not tested
 				xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_STATUS)
 						.addContent(XmlConstants.XML_VALUE_STATUS_FAILED));
 				xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_REASON).addContent(e.getMessage()));

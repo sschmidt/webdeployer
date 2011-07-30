@@ -28,6 +28,7 @@ import org.eclipse.rtp.httpdeployer.repository.RepositoryManager;
 
 @SuppressWarnings("restriction")
 public class FeatureManager {
+  
 	public enum Action {
 		UNINSTALL, INSTALL
 	}
@@ -42,18 +43,21 @@ public class FeatureManager {
 		this.configurator = configurator;
 	}
 
+	// TODO: Not tested
 	public void installFeature(String featureId, String version) throws FeatureInstallException {
 		ProfileChangeOperation operation = resolveProfileChangeOperation(featureId, version, Action.INSTALL);
 		executeProfileChangeOperation(operation);
 		applyChanges();
 	}
 
+	// TODO: Not tested
 	public void uninstallFeature(String featureId, String version) throws FeatureInstallException {
 		ProfileChangeOperation operation = resolveProfileChangeOperation(featureId, version, Action.UNINSTALL);
 		executeProfileChangeOperation(operation);
 		applyChanges();
 	}
-
+	
+    // TODO: Not tested
 	private ProfileChangeOperation resolveProfileChangeOperation(String featureId, String version, Action action)
 			throws FeatureInstallException {
 		ProvisioningSession session = new ProvisioningSession(provisioningAgent);
