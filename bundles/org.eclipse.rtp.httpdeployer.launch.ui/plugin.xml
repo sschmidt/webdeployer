@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+<extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+    <launchConfigurationTypeImage
+        icon="images/cloud.png"
+        configTypeID="org.eclipse.rtp.launch.CloudApplication"
+        id="org.eclipse.jdt.debug.ui.launchConfigurationTypeImage.cloudApplication">
+    </launchConfigurationTypeImage>
+</extension>
+<extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+    <launchConfigurationTabGroup
+        type="org.eclipse.rtp.launch.CloudApplication"
+        class="org.eclipse.rtp.httpdeployer.internal.ui.launcher.CloudApplicationTabGroup"
+        id="org.eclipse.jdt.debug.ui.launchConfigurationTabGroup.javaApplet">
+    </launchConfigurationTabGroup>
+</extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut
+            class="org.eclipse.rtp.httpdeployer.internal.ui.shortcut.CloudApplicationShortcut"
+            description="Launches this feature at a remote OSGi runtime"
+            id="org.eclipse.rtp.launch.CloudApplicationShortcut"
+            label="Cloud Application"
+            modes="run">
+         <configurationType
+               id="org.eclipse.rtp.launch.CloudApplication">
+         </configurationType>
+         <description
+               description="Launches this feature at a remote OSGi runtime"
+               mode="run">
+         </description>
+         <contextualLaunch>
+            <enablement>
+               <with variable="selection">
+                  <count value="1"></count>
+               </with>
+            </enablement>
+         </contextualLaunch>
+      </shortcut>
+   </extension>
+</plugin>

@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Launch Configuration Tests
+Bundle-SymbolicName: org.eclipse.rtp.tests.httpdeployer.launch
+Bundle-Version: 1.0.0
+Require-Bundle: org.eclipse.core.runtime
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Fragment-Host: org.eclipse.rtp.httpdeployer.launch
+Import-Package: org.eclipse.equinox.internal.p2.director,
+ org.eclipse.equinox.p2.planner;version="2.0.0",
+ org.hamcrest,
+ org.junit,
+ org.mockito,
+ org.mockito.invocation;version="1.8.4",
+ org.mockito.stubbing,
+ org.objenesis

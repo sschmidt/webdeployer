@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+<extension point="org.eclipse.debug.core.launchConfigurationTypes">
+    <launchConfigurationType
+        name="Cloud Application"
+        delegate="org.eclipse.rtp.httpdeployer.internal.launch.CloudApplication"
+        modes="run"               
+        id="org.eclipse.rtp.launch.CloudApplication">        
+    </launchConfigurationType>
+</extension>
+
+</plugin>
