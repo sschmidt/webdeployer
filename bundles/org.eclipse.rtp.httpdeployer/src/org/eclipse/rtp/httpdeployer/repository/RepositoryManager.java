@@ -60,13 +60,9 @@ public class RepositoryManager {
 	}
 
 	private File createLocalRepository(ZipInputStream zis) throws InvalidRepositoryException, IOException, FileNotFoundException {
-		File repository;
-		repository = new File(System.getProperty("java.io.tmpdir") + CommonConstants.DIR_SEPARATOR + LOCAL_REPOSITORY_PREFIX
+		File repository = new File(System.getProperty("java.io.tmpdir") + CommonConstants.DIR_SEPARATOR + LOCAL_REPOSITORY_PREFIX
 				+ Long.toString(System.nanoTime()));
-		if (!repository.mkdirs()) {
-		    // TODO: Not tested
-			throw new IOException("error creating repository directory");
-		}
+		repository.mkdirs();
 		createLocalRepositoryStructure(zis, repository);
 
 		try {
@@ -100,12 +96,13 @@ public class RepositoryManager {
 
 	private void createLocalDirectory(File repository, ZipEntry currentFile) {
 		File file = new File(repository.getAbsolutePath() + CommonConstants.DIR_SEPARATOR + currentFile.getName());
-		file.mkdir();
+		file.mkdirs();
 	}
 
 	private void createLocalFile(ZipInputStream zis, File repository, ZipEntry currentFile) throws IOException,
 			FileNotFoundException {
 		File file = new File(repository.getAbsolutePath() + CommonConstants.DIR_SEPARATOR + currentFile.getName());
+		file.getParentFile().mkdirs();
 		file.createNewFile();
 		FileOutputStream fos = new FileOutputStream(file);
 		BufferedOutputStream bfos = new BufferedOutputStream(fos, FILE_BUFFER);
@@ -154,8 +151,8 @@ public class RepositoryManager {
 		return service;
 	}
 
-	// TODO: Not tested
-	public IProvisioningAgent getProvisioningAgent() {
-		return provisioningAgent;
+	public void removeLocalRepository(URI repository) throws IOException {
+		FileUtils.deleteDirectory(new File(repository));
+		removeRepository(repository);
 	}
 }

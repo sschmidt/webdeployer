@@ -24,8 +24,7 @@ public final class XmlConstants {
 	public static final String XML_VALUE_STATUS_FAILED = "failed"; //$NON-NLS-N$
 	public static final String XML_VALUE_STATUS_SUCCESSFUL = "successful"; //$NON-NLS-N$
 	public static final String XML_ELEMENT_SYSTEM = "system"; //$NON-NLS-N$
-	
-	// TODO: Constant classes should always be final and not allocable
+
 	private XmlConstants() {
 	  // prevent instantiation
 	}

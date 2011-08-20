@@ -56,13 +56,16 @@ public class FeatureServletTest {
 	public void setUp() throws IOException {
 		MockitoAnnotations.initMocks(this);
 
-		featureServlet = new FeatureServlet(featureManager);
+		featureServlet = new FeatureServlet(featureManager, null);
 		when(responseMock.getWriter()).thenReturn(responsePrintWriter);
 	}
 
 	@Test
 	public void doInstallFeatureTest() throws ServletException, IOException, JDOMException, FeatureInstallException {
 		when(requestMock.getReader()).thenReturn(new BufferedReader(new StringReader(VALID_INSTALL_REQUEST)));
+		// return stupid http method to break multiform-check in this test
+		when(requestMock.getMethod()).thenReturn("fooo");
+
 		featureServlet.doPost(requestMock, responseMock);
 
 		SAXBuilder builder = new SAXBuilder();
@@ -78,6 +81,9 @@ public class FeatureServletTest {
 	@Test
 	public void doInvalidInstallFeatureTest() throws ServletException, IOException, JDOMException, FeatureInstallException {
 		when(requestMock.getReader()).thenReturn(new BufferedReader(new StringReader("really not valid...")));
+		// return stupid http method to break multiform-check in this test
+		when(requestMock.getMethod()).thenReturn("fooo");
+
 		featureServlet.doPost(requestMock, responseMock);
 
 		verify(responseMock).sendError(HttpServletResponse.SC_BAD_REQUEST);

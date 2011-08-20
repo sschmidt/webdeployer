@@ -28,7 +28,7 @@ import org.eclipse.rtp.httpdeployer.repository.RepositoryManager;
 
 @SuppressWarnings("restriction")
 public class FeatureManager {
-  
+
 	public enum Action {
 		UNINSTALL, INSTALL
 	}
@@ -56,8 +56,8 @@ public class FeatureManager {
 		executeProfileChangeOperation(operation);
 		applyChanges();
 	}
-	
-    // TODO: Not tested
+
+	// TODO: Not tested
 	private ProfileChangeOperation resolveProfileChangeOperation(String featureId, String version, Action action)
 			throws FeatureInstallException {
 		ProvisioningSession session = new ProvisioningSession(provisioningAgent);

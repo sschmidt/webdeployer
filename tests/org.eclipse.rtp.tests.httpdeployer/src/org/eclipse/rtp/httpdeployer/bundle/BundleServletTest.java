@@ -114,7 +114,7 @@ public class BundleServletTest {
 	private class MockBundleServlet extends BundleServlet {
 		private static final long serialVersionUID = 1L;
 
-		@Override
+		// FIXME
 		protected Bundle[] receiveBundlesFromContext() {
 			Bundle mockActiveBundle = mock(Bundle.class);
 			when(mockActiveBundle.getState()).thenReturn(Bundle.ACTIVE);

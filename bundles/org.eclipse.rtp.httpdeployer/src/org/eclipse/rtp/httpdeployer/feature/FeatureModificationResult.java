@@ -11,6 +11,7 @@ package org.eclipse.rtp.httpdeployer.feature;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.rtp.httpdeployer.internal.CommonConstants.Action;
 import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -18,10 +19,6 @@ import org.jdom.Element;
 public class FeatureModificationResult {
 
 	private List<SingleFeatureModificationResult> results = new ArrayList<SingleFeatureModificationResult>();
-
-	public enum Action {
-		INSTALL, UNINSTALL
-	}
 
 	public void addSuccess(String name, String version, Action action) {
 		results.add(new SingleFeatureModificationResult(name, version, action));

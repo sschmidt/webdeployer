@@ -18,19 +18,56 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.jdom.Document;
 import org.jdom.Element;
+import org.jdom.output.XMLOutputter;
 
+// TODO: move to own package
+// TODO: remove Strings
+// TODO: Test
 public class HttpDeployerClient {
-	private static final String REPOSITORY_PATH = "/repository"; //$NON-NLS-N$
-	private static final String BUNDLE_PATH = "/bundle"; //$NON-NLS-N$
+	public static final String FEATURE_GROUP_SUFFIX = ".feature.group";
+	public static final String REPOSITORY_PATH = "/repository"; //$NON-NLS-N$
+	public static final String BUNDLE_PATH = "/bundle"; //$NON-NLS-N$
+	public static final String FEATURE_PATH = "/feature"; //$NON-NLS-N$
 
 	private final String serviceUri;
 	private final HttpClient client;
 
 	public HttpDeployerClient(String serviceUri) {
+		// strip last /
+		if (serviceUri.endsWith("/")) {
+			serviceUri = serviceUri.substring(0, serviceUri.length() - 1);
+		}
 		this.serviceUri = serviceUri;
 		client = new HttpClient();
+	}
+
+	public void installFeature(File repository, String id, String version) throws HttpException, IOException {
+		deleteFeature(id, version);
+
+		PostMethod method = new PostMethod(serviceUri + FEATURE_PATH);
+		XMLOutputter outputter = new XMLOutputter();
+		String featureInstall = outputter.outputString(getFeatureOperation(id, version));
+
+		Part[] parts = new Part[] { new FilePart("repository", repository), new StringPart("feature", featureInstall) };
+		MultipartRequestEntity entity = new MultipartRequestEntity(parts, method.getParams());
+		method.setRequestEntity(entity);
+
+		executeMethod(method);
+	}
+
+	private Document getFeatureOperation(String id, String version) {
+		Document document = new Document();
+		Element features = new Element("features");
+		Element featureXml = new Element("feature");
+		featureXml.addContent(new Element("name").addContent(id + FEATURE_GROUP_SUFFIX));
+		featureXml.addContent(new Element("version").addContent(version));
+		features.addContent(featureXml);
+		document.setRootElement(features);
+
+		return document;
 	}
 
 	public void uploadRepository(File repository) throws HttpException, IOException {
@@ -42,26 +79,44 @@ public class HttpDeployerClient {
 		executeMethod(method);
 	}
 
-	public void startBundle(String name, String version) throws HttpException, IOException {
-		PostMethod post = new PostMethod(serviceUri + BUNDLE_PATH);
-		Document document = new Document();
-		Element bundles = new Element("bundles");
-		Element bundleXml = new Element("bundle");
-		bundleXml.addContent(new Element("name").addContent(name));
-		bundleXml.addContent(new Element("version").addContent(version));
-		bundleXml.addContent(new Element("action").addContent("start"));
-		bundles.addContent(bundleXml);
-		document.setRootElement(bundles);
+	public void installFeature(String id, String version) throws IOException {
+		PostMethod post = new PostMethod(serviceUri + FEATURE_PATH);
+		DeleteMethodRequestEntity delete = new DeleteMethodRequestEntity(serviceUri + FEATURE_PATH);
+		Document document = getFeatureOperation(id, version);
+		delete.setRequestEntity(new JdomRequestEntity(document));
 		post.setRequestEntity(new JdomRequestEntity(document));
 
+		executeMethod(delete);
 		executeMethod(post);
+	}
+
+	public void deleteFeature(String id, String version) throws IOException {
+		DeleteMethodRequestEntity delete = new DeleteMethodRequestEntity(serviceUri + FEATURE_PATH);
+		Document document = getFeatureOperation(id, version);
+		delete.setRequestEntity(new JdomRequestEntity(document));
+
+		executeMethod(delete);
 	}
 
 	private void executeMethod(HttpMethod method) throws IOException {
 		int result = client.executeMethod(method);
-		if(result > 299) {
+		if (result > 299) {
 			throw new HttpException("invalid response code: HTTP " + result);
 		}
+	}
+
+	public void startPlugin(String id, String version) throws IOException {
+		PostMethod post = new PostMethod(serviceUri + BUNDLE_PATH);
+		Document document = new Document();
+		Element features = new Element("bundles");
+		Element featureXml = new Element("bundle");
+		featureXml.addContent(new Element("name").addContent(id));
+		featureXml.addContent(new Element("version").addContent(version));
+		features.addContent(featureXml);
+		document.setRootElement(features);
+		post.setRequestEntity(new JdomRequestEntity(document));
+
+		executeMethod(post);
 	}
 
 	// TODO: extend, move to own project

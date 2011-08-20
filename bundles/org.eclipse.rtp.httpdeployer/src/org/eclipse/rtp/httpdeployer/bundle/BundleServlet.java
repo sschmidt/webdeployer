@@ -9,24 +9,21 @@
 package org.eclipse.rtp.httpdeployer.bundle;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.rtp.httpdeployer.internal.CommonConstants;
+import org.eclipse.rtp.httpdeployer.internal.AbstractHttpDeployerServlet;
+import org.eclipse.rtp.httpdeployer.internal.CommonConstants.Action;
+import org.eclipse.rtp.httpdeployer.internal.HttpDeployerUtils;
 import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
 import org.jdom.Document;
 import org.jdom.Element;
-import org.jdom.output.XMLOutputter;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.BundleException;
 
-public class BundleServlet extends HttpServlet {
+public class BundleServlet extends AbstractHttpDeployerServlet {
 
 	private static final long serialVersionUID = 3749930485862030632L;
 	protected static final String REQUEST_PATH_RESOLVED_BUNDLES = "/resolved"; //$NON-NLS-N$
@@ -34,37 +31,40 @@ public class BundleServlet extends HttpServlet {
 	protected static final int ALL_BUNDLES = 0;
 
 	@Override
-	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		resp.setContentType(CommonConstants.RESPONSE_CONTENT_TYPE);
-		Document responseXml = parseRequest(req);
-		XMLOutputter out = new XMLOutputter();
-		out.output(responseXml, resp.getWriter());
-	}
-
-	private Document parseRequest(HttpServletRequest req) {
-		String requestPath = req.getPathInfo();
-		Document responseXml;
+	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String requestPath = request.getPathInfo();
+		Document document;
 
 		if (requestPath == null) {
-			responseXml = generateBundleList(ALL_BUNDLES);
+			document = generateBundleList(ALL_BUNDLES);
 		} else if (requestPath.startsWith(REQUEST_PATH_ACTIVE_BUNDLES)) {
-			responseXml = generateBundleList(Bundle.ACTIVE);
+			document = generateBundleList(Bundle.ACTIVE);
 		} else if (requestPath.startsWith(REQUEST_PATH_RESOLVED_BUNDLES)) {
-			responseXml = generateBundleList(Bundle.RESOLVED);
+			document = generateBundleList(Bundle.RESOLVED);
 		} else {
-			responseXml = generateBundleList(ALL_BUNDLES);
+			document = generateBundleList(ALL_BUNDLES);
 		}
-		return responseXml;
+
+		HttpDeployerUtils.outputDocument(response, document);
+	}
+
+	@Override
+	public Document parseDeleteRequest(Document request) {
+		return parseRequest(request, Action.UNINSTALL);
+	}
+
+	@Override
+	public Document parsePostRequest(Document request) {
+		return parseRequest(request, Action.START);
+	}
+
+	@Override
+	public Document parseMultipartPostRequest(HttpServletRequest request) throws Exception {
+		throw new IllegalAccessException();
 	}
 
 	private Document generateBundleList(int requestType) {
-		List<Bundle> bundles = receiveBundles(requestType);
-		Element root = generateBundleListXml(bundles);
-
-		return new Document(root);
-	}
-
-	private Element generateBundleListXml(List<Bundle> bundles) {
+		Bundle[] bundles = HttpDeployerUtils.receiveBundles(requestType);
 		Element root = new Element(XmlConstants.XML_ELEMENT_BUNDLES);
 		for (Bundle bundle : bundles) {
 			Element bundleXml = new Element(XmlConstants.XML_ELEMENT_BUNDLE);
@@ -72,28 +72,55 @@ public class BundleServlet extends HttpServlet {
 			bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_VERSION).addContent(bundle.getVersion().toString()));
 			root.addContent(bundleXml);
 		}
-
-		return root;
+		return new Document(root);
 	}
 
-	private List<Bundle> receiveBundles(int requestType) {
-		Bundle[] bundles = receiveBundlesFromContext();
+	// TODO: Nesting Level of three.
+	// TODO: Almost the same method exists in the RepositoryServlet. Eliminate
+	// Code Duplication?
+	private Document parseRequest(Document request, Action action) {
+		Element rootElement = request.getRootElement();
+		BundleModificationResult result = new BundleModificationResult();
 
-		List<Bundle> validBundles = new ArrayList<Bundle>();
-		for (Bundle bundle : bundles) {
-			if (bundle.getState() == requestType || requestType == ALL_BUNDLES) {
-				validBundles.add(bundle);
+		for (Object child : rootElement.getChildren()) {
+			if (child instanceof Element) {
+				Element currentElement = (Element) child;
+				if (currentElement.getName().equals(XmlConstants.XML_ELEMENT_BUNDLE)) {
+					String name = currentElement.getChildText(XmlConstants.XML_ELEMENT_NAME);
+					String actionName = currentElement.getChildText(XmlConstants.XML_ELEMENT_ACTION);
+					if (actionName != null && actionName.equalsIgnoreCase("stop")) {
+						action = Action.STOP;
+					}
+					Bundle bundle = HttpDeployerUtils.searchBundle(name);
+					handleOperation(result, name, bundle, action);
+				}
 			}
 		}
 
-		return validBundles;
+		return result.getDocument();
 	}
 
-	// TODO: Not tested
-	protected Bundle[] receiveBundlesFromContext() {
-		Bundle currentBundle = FrameworkUtil.getBundle(getClass());
-		BundleContext context = currentBundle.getBundleContext();
-		Bundle[] bundles = context.getBundles();
-		return bundles;
+	private void handleOperation(BundleModificationResult result, String name, Bundle bundle, Action action) {
+		if (bundle == null) {
+			result.addFailure(name, action, "bundle not found");
+		} else {
+			try {
+				switch (action) {
+				case START:
+					bundle.start();
+					break;
+				case STOP:
+					bundle.stop();
+					break;
+				case UNINSTALL:
+					bundle.uninstall();
+					break;
+				}
+				result.addSuccess(name, action);
+			} catch (BundleException e) {
+				result.addFailure(name, action, e.getMessage());
+			}
+		}
 	}
+
 }

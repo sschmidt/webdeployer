@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.rtp.httpdeployer.launch.CloudApplicationLaunchConfig;
 import org.junit.Test;
@@ -36,10 +37,23 @@ public class CloudApplicationTest {
 		doReturn(operation).when(app).createOperation(any(IProgressMonitor.class), any(HttpPublishConfig.class));
 
 		IProgressMonitor monitor = mock(IProgressMonitor.class);
+		when(operation.run(monitor)).thenReturn(new Status(Status.OK, "cloudapplication", "ok"));
 		app.launch(conf, "run", null, monitor);
 
 		verify(app).createDeployerConfiguration(conf);
 		verify(app).createOperation(eq(monitor), any(HttpPublishConfig.class));
+	}
+
+	@Test(expected=CoreException.class)
+	public void invalidLaunchTest() throws CoreException {
+		CloudApplication app = spy(new CloudApplication());
+		ILaunchConfiguration conf = mock(ILaunchConfiguration.class);
+		HttpPublishOperation operation = mock(HttpPublishOperation.class);
+		doReturn(operation).when(app).createOperation(any(IProgressMonitor.class), any(HttpPublishConfig.class));
+
+		IProgressMonitor monitor = mock(IProgressMonitor.class);
+		when(operation.run(monitor)).thenReturn(new Status(Status.ERROR, "error", "error"));
+		app.launch(conf, "run", null, monitor);
 	}
 
 	@Test

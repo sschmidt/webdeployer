@@ -46,7 +46,9 @@ public class RepositoryServletTest {
 
 	private static final String VALID_DELETE_CREATE_REQUEST = "<repositories><repository><uri>" + TEST_REPOSITORY_URI
 			+ "</uri></repository></repositories>";
-
+	
+	private static final String VALID_DELETE_REQUEST_INVALID_URI = "<repositories><repository><uri>not an uri</uri></repository></repositories>";
+	
 	private RepositoryServlet repositoryServlet;
 
 	@Mock
@@ -99,6 +101,20 @@ public class RepositoryServletTest {
 		Element repo = (Element) request.getRootElement().getChildren().get(0);
 		assertEquals(TEST_REPOSITORY_URI, repo.getChildText("uri"));
 		assertEquals("successful", repo.getChildText("status"));
+
+		verify(repoManagerMock).removeRepository(new URI(TEST_REPOSITORY_URI));
+	}
+
+	@Test
+	public void doValidDeleteInvalidUriTest() throws ServletException, IOException, JDOMException, URISyntaxException {
+		when(requestMock.getReader()).thenReturn(new BufferedReader(new StringReader(VALID_DELETE_REQUEST_INVALID_URI)));
+		repositoryServlet.doDelete(requestMock, responseMock);
+
+		SAXBuilder builder = new SAXBuilder();
+		Document request = builder.build(new ByteArrayInputStream(responseWriter.toString().getBytes()));
+		Element repo = (Element) request.getRootElement().getChildren().get(0);
+		assertEquals(TEST_REPOSITORY_URI, repo.getChildText("uri"));
+		assertEquals("failed", repo.getChildText("status"));
 
 		verify(repoManagerMock).removeRepository(new URI(TEST_REPOSITORY_URI));
 	}

@@ -15,8 +15,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jdom.Document;
 import org.jdom.Element;
-import org.jdom.output.XMLOutputter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.Version;
 
@@ -25,10 +25,9 @@ public class SystemServlet extends HttpServlet {
 	private static final long serialVersionUID = 3404658151450270259L;
 	private static final String REQUEST_PATH_VERSION = "/-version"; //$NON-NLS-N$
 
-    // TODO: Not tested	
+	// TODO: Not tested
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		resp.setContentType(CommonConstants.RESPONSE_CONTENT_TYPE);
 		if (req.getPathInfo() != null && req.getPathInfo().startsWith(REQUEST_PATH_VERSION)) {
 			printVersion(resp);
 		}
@@ -40,8 +39,7 @@ public class SystemServlet extends HttpServlet {
 		bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_NAME).addContent(getHttpDeployerName()));
 		bundleXml.addContent(new Element(XmlConstants.XML_ELEMENT_VERSION).addContent(getHttpDeployerVersion().toString()));
 		root.addContent(bundleXml);
-		XMLOutputter out = new XMLOutputter();
-		out.output(root, resp.getWriter());
+		HttpDeployerUtils.outputDocument(resp, new Document(root));
 	}
 
 	protected Version getHttpDeployerVersion() {

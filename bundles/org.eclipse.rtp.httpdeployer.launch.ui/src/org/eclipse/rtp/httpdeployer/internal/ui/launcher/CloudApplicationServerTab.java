@@ -82,8 +82,10 @@ public class CloudApplicationServerTab extends AbstractLaunchConfigurationTab {
 	public void initializeFrom(ILaunchConfiguration rootConfiguration) {
 		CloudApplicationLaunchConfig config = new CloudApplicationLaunchConfig(rootConfiguration);
 		try {
-			featureText.setText(config.getFeatureId());
-			feature = CloudApplicationLaunchUtils.getFeatureModel(config.getFeatureId(), config.getFeatureVersion());
+			if (!config.getFeatureId().equals("")) {
+				featureText.setText(config.getFeatureId() + " (" + config.getFeatureVersion() + ")");
+				feature = CloudApplicationLaunchUtils.getFeatureModel(config.getFeatureId(), config.getFeatureVersion());
+			}
 			server.setText(config.getServerUri());
 		} catch (CoreException e) {
 			DebugPlugin.log(e);
@@ -127,7 +129,7 @@ public class CloudApplicationServerTab extends AbstractLaunchConfigurationTab {
 	public void setFeature(IFeatureModel iFeatureModel) {
 		setDirty(true);
 		feature = iFeatureModel;
-		featureText.setText(feature.getFeature().getId());
+		featureText.setText(feature.getFeature().getId() + " (" + feature.getFeature().getVersion() + ")");
 		updateLaunchConfigurationDialog();
 	}
 }

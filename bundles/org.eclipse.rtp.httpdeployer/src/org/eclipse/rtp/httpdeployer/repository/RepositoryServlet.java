@@ -8,46 +8,35 @@
  ******************************************************************************/
 package org.eclipse.rtp.httpdeployer.repository;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.eclipse.rtp.httpdeployer.internal.CommonConstants;
+import org.eclipse.rtp.httpdeployer.internal.AbstractHttpDeployerServlet;
+import org.eclipse.rtp.httpdeployer.internal.CommonConstants.Action;
+import org.eclipse.rtp.httpdeployer.internal.HttpDeployerUtils;
 import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
 import org.jdom.Document;
 import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.XMLOutputter;
 
-public class RepositoryServlet extends HttpServlet {
+public class RepositoryServlet extends AbstractHttpDeployerServlet {
 
 	private static final long serialVersionUID = -4190823339335383710L;
 	private final RepositoryManager repositoryManager;
-
-	public enum Action {
-		REMOVE, ADD
-	}
 
 	public RepositoryServlet(RepositoryManager repositoryManager) {
 		this.repositoryManager = repositoryManager;
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		resp.setContentType(CommonConstants.RESPONSE_CONTENT_TYPE);
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		URI[] repositories = repositoryManager.getRepositories();
 		Element root = new Element(XmlConstants.XML_ELEMENT_REPOSITORIES);
 
@@ -57,76 +46,44 @@ public class RepositoryServlet extends HttpServlet {
 			root.addContent(bundleXml);
 		}
 
-		Document document = new Document(root);
-		XMLOutputter out = new XMLOutputter();
-		out.output(document, resp.getWriter());
+		HttpDeployerUtils.outputDocument(resp, new Document(root));
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		RepositoryModificationResult result = null;
-
-		// create repository by URI
-		if (!ServletFileUpload.isMultipartContent(req)) {
-			try {
-				result = parseUriAddRequest(req);
-			} catch (JDOMException e) {
-				resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
-				return;
-			}
-		} else { // create repository by file upload
-			try {
-				result = parseUploadRequest(req);
-			} catch (FileUploadException e) {
-				resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
-				return;
-			}
-		}
-
-		XMLOutputter out = new XMLOutputter();
-		out.output(result.getDocument(), resp.getWriter());
-	}
-
-	private RepositoryModificationResult parseUploadRequest(HttpServletRequest req) throws FileUploadException,
-			FileNotFoundException, IOException {
+	public Document parseMultipartPostRequest(HttpServletRequest req) throws FileUploadException, IOException {
 		RepositoryModificationResult result = new RepositoryModificationResult();
+		List<FileItem> files = HttpDeployerUtils.parseMultipartRequest(req);
 
-		FileItemFactory factory = new DiskFileItemFactory();
-		ServletFileUpload upload = new ServletFileUpload(factory);
-		@SuppressWarnings("unchecked")
-		List<FileItem> files = upload.parseRequest(req);
 		if (files.size() != 1) {
 			throw new FileUploadException("File not found");
 		}
 
 		try {
-			result.addSuccess(repositoryManager.addRepository(files.get(0).getInputStream()).toString(), Action.ADD);
+			InputStream repository = files.get(0).getInputStream();
+			result.addSuccess(repositoryManager.addRepository(repository).toString(), Action.ADD);
 		} catch (InvalidRepositoryException e) {
 			result.addFailure("local", e.getMessage(), Action.ADD);
 		}
-		return result;
-	}
 
-	private RepositoryModificationResult parseUriAddRequest(HttpServletRequest req) throws JDOMException, IOException {
-		SAXBuilder builder = new SAXBuilder();
-		Document request = builder.build(req.getReader());
-		return parseRequestDocument(request, Action.ADD);
+		// delete temporary files
+		for (FileItem item : files) {
+			item.delete();
+		}
+
+		return result.getDocument();
 	}
 
 	@Override
-	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		SAXBuilder builder = new SAXBuilder();
-		try {
-			Document request = builder.build(req.getReader());
-			RepositoryModificationResult result = parseRequestDocument(request, Action.REMOVE);
-			XMLOutputter out = new XMLOutputter();
-			out.output(result.getDocument(), resp.getWriter());
-		} catch (JDOMException e) {
-			resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
-		}
+	public Document parseDeleteRequest(Document request) {
+		return parseXmlRequest(request, Action.REMOVE);
 	}
 
-	private RepositoryModificationResult parseRequestDocument(Document request, Action action) {
+	@Override
+	public Document parsePostRequest(Document request) {
+		return parseXmlRequest(request, Action.ADD);
+	}
+
+	private Document parseXmlRequest(Document request, Action action) {
 		Element rootElement = request.getRootElement();
 		RepositoryModificationResult result = new RepositoryModificationResult();
 
@@ -140,17 +97,16 @@ public class RepositoryServlet extends HttpServlet {
 						performRepositoryAction(repository, action);
 						result.addSuccess(repositoryPath, action);
 					} catch (URISyntaxException e) {
-					  // TODO: Not tested
+						// TODO: Not tested
 						result.addFailure(repositoryPath, e.getMessage(), action);
 					}
 				}
 			}
 		}
 
-		return result;
+		return result.getDocument();
 	}
 
-	
 	private void performRepositoryAction(URI repository, Action action) {
 		if (action.equals(Action.ADD)) {
 			repositoryManager.addRepository(repository);
@@ -159,8 +115,4 @@ public class RepositoryServlet extends HttpServlet {
 		}
 	}
 
-	   // TODO: Not tested
-	public RepositoryManager getRepositoryManager() {
-		return repositoryManager;
-	}
 }

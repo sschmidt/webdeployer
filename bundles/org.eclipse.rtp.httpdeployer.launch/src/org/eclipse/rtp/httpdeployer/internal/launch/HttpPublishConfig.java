@@ -140,7 +140,7 @@ public class HttpPublishConfig extends FeatureExportInfo {
 		HttpPublishConfig config = new HttpPublishConfig();
 		config.setAllowBinaryCycles(true);
 		config.setJnlpInfo(null);
-		config.setQualifier(null);
+		config.setQualifier(String.valueOf(Math.round(System.currentTimeMillis() + Math.random() * 10000000)));
 		config.setToDirectory(true);
 		config.setSigningInfo(null);
 		config.setTargets(null);

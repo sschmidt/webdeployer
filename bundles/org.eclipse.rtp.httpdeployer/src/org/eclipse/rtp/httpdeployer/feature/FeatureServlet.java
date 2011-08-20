@@ -9,66 +9,83 @@
 package org.eclipse.rtp.httpdeployer.feature;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.util.List;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.eclipse.rtp.httpdeployer.internal.AbstractHttpDeployerServlet;
+import org.eclipse.rtp.httpdeployer.internal.CommonConstants.Action;
+import org.eclipse.rtp.httpdeployer.internal.HttpDeployerUtils;
 import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
+import org.eclipse.rtp.httpdeployer.repository.RepositoryManager;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
-import org.jdom.output.XMLOutputter;
 
-public class FeatureServlet extends HttpServlet {
+public class FeatureServlet extends AbstractHttpDeployerServlet {
 
 	private static final long serialVersionUID = 8439160853108236583L;
 	private final FeatureManager featureManager;
+	private final RepositoryManager repositoryManager;
 
-	public FeatureServlet(FeatureManager featureManager) {
+	public FeatureServlet(FeatureManager featureManager, RepositoryManager repositoryManager) {
 		this.featureManager = featureManager;
+		this.repositoryManager = repositoryManager;
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		try {
-			Document xmlDocument = parseXmlRequest(request);
-			FeatureModificationResult result = parseRequest(xmlDocument, FeatureModificationResult.Action.INSTALL);
-			returnOperationResult(response, result);
-		} catch (JDOMException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-		}
+	public Document parsePostRequest(Document requestDocument) {
+		return parseRequest(requestDocument, Action.INSTALL);
 	}
 
 	@Override
-	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		try {
-			Document xmlDocument = parseXmlRequest(request);
-			FeatureModificationResult result = parseRequest(xmlDocument, FeatureModificationResult.Action.UNINSTALL);
-			returnOperationResult(response, result);
-		} catch (JDOMException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-		}
+	public Document parseDeleteRequest(Document requestDocument) {
+		return parseRequest(requestDocument, Action.UNINSTALL);
 	}
 
-	private Document parseXmlRequest(HttpServletRequest request) throws JDOMException, IOException {
+	@Override
+	public Document parseMultipartPostRequest(HttpServletRequest request) throws Exception {
+		List<FileItem> files = HttpDeployerUtils.parseMultipartRequest(request);
+		if (files.size() != 2) {
+			throw new FileUploadException("Files not found");
+		}
+
+		InputStream repository = getRepositoryFromMultipart(files);
+		repositoryManager.addRepository(repository);
+		Document feature = getFeatureRequestFromMultipart(files);
+		Document installRequest = parseRequest(feature, Action.INSTALL);
+
+		return installRequest;
+	}
+
+	private Document getFeatureRequestFromMultipart(List<FileItem> files) throws JDOMException, IOException {
+		String feature;
+		if (files.get(0).isFormField()) {
+			feature = files.get(0).getString();
+		} else {
+			feature = files.get(1).getString();
+		}
 		SAXBuilder builder = new SAXBuilder();
-		Document xmlDocument = builder.build(request.getReader());
-		return xmlDocument;
+		return builder.build(new StringReader(feature));
 	}
 
-	private void returnOperationResult(HttpServletResponse resp, FeatureModificationResult result) throws IOException {
-		XMLOutputter out = new XMLOutputter();
-		out.output(result.getDocument(), resp.getWriter());
+	private InputStream getRepositoryFromMultipart(List<FileItem> files) throws IOException {
+		if (files.get(0).isFormField()) {
+			return files.get(1).getInputStream();
+		} else {
+			return files.get(0).getInputStream();
+		}
 	}
 
 	// TODO: Three nesting levels. Maybe this method can be splitted?
-	private FeatureModificationResult parseRequest(Document request, FeatureModificationResult.Action action)
-			throws JDOMException {
-		Element rootElement = request.getRootElement();
+	private Document parseRequest(Document request, Action action) {
 		FeatureModificationResult result = new FeatureModificationResult();
+		Element rootElement = request.getRootElement();
 
 		for (Object child : rootElement.getChildren()) {
 			if (child instanceof Element) {
@@ -76,26 +93,29 @@ public class FeatureServlet extends HttpServlet {
 				if (currentElement.getName().equals(XmlConstants.XML_ELEMENT_FEATURE)) {
 					String name = currentElement.getChildText(XmlConstants.XML_ELEMENT_NAME);
 					String version = currentElement.getChildText(XmlConstants.XML_ELEMENT_VERSION);
+					if (action == Action.UNINSTALL) {
+						version = null;
+					}
+
 					handleOperation(result, name, version, action);
 				}
 			}
 		}
 
-		return result;
+		return result.getDocument();
 	}
 
-	private void handleOperation(FeatureModificationResult result, String name, String version,
-			FeatureModificationResult.Action action) {
+	private void handleOperation(FeatureModificationResult result, String name, String version, Action action) {
 		try {
-			if (action.equals(FeatureModificationResult.Action.INSTALL)) {
+			if (action.equals(Action.INSTALL)) {
 				featureManager.installFeature(name, version);
 				result.addSuccess(name, version, action);
-			} else if (action.equals(FeatureModificationResult.Action.UNINSTALL)) {
+			} else if (action.equals(Action.UNINSTALL)) {
 				featureManager.uninstallFeature(name, version);
 				result.addSuccess(name, version, action);
 			}
 		} catch (FeatureInstallException e) {
-		    // TODO: Not tested
+			// TODO: Not tested
 			result.addFailed(name, version, action, e);
 		}
 	}

@@ -11,6 +11,7 @@ package org.eclipse.rtp.httpdeployer.internal.launch;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
@@ -19,12 +20,17 @@ import org.eclipse.rtp.httpdeployer.launch.utils.CloudApplicationLaunchUtils;
 
 public class CloudApplication implements ILaunchConfigurationDelegate {
 
+	private static final String HTTP_DEPLOYER_JOB_NAME = "Http Deployer Job";
+
 	@Override
 	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor)
 			throws CoreException {
 		HttpPublishConfig deployerConfiguration = createDeployerConfiguration(configuration);
 		HttpPublishOperation operation = createOperation(monitor, deployerConfiguration);
-		operation.run(monitor);
+		IStatus status = operation.run(monitor);
+		if (!status.isOK()) {
+			throw new CoreException(status);
+		}
 	}
 
 	protected HttpPublishConfig createDeployerConfiguration(ILaunchConfiguration configuration) throws CoreException {
@@ -38,7 +44,7 @@ public class CloudApplication implements ILaunchConfigurationDelegate {
 	}
 
 	protected HttpPublishOperation createOperation(IProgressMonitor monitor, HttpPublishConfig config) {
-		HttpPublishOperation job = new HttpPublishOperation(config, "Http Deployer Job");
+		HttpPublishOperation job = new HttpPublishOperation(config, HTTP_DEPLOYER_JOB_NAME);
 		job.setUser(true);
 		job.setRule(ResourcesPlugin.getWorkspace().getRoot());
 		return job;

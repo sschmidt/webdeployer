@@ -8,6 +8,7 @@
  ******************************************************************************/
 package org.eclipse.rtp.httpdeployer.repository;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,6 +26,7 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepositoryManager;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepositoryManager;
+import org.eclipse.rtp.httpdeployer.internal.CommonConstants;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -101,4 +103,19 @@ public class RepositoryManagerTest {
 
 		FileUtils.deleteDirectory(new File(uri));
 	}
+	
+	@Test
+	public void removeLocalRepositoryTest() throws URISyntaxException, IOException {
+		RepositoryManager manager = new RepositoryManager(paMock);
+		File repository = new File(System.getProperty("java.io.tmpdir") + CommonConstants.DIR_SEPARATOR + "repo_"
+				+ Long.toString(System.nanoTime()));
+		repository.mkdirs();
+		URI repo = repository.toURI();
+		manager.removeLocalRepository(repo);
+		
+		assertFalse(repository.exists());
+		verify(mrmMock).removeRepository(repo);
+		verify(armMock).removeRepository(repo);
+	}
+
 }

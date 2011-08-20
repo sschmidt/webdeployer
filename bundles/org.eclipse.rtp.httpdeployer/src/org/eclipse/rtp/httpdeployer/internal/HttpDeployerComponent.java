@@ -12,7 +12,6 @@ import javax.servlet.ServletException;
 
 import org.eclipse.equinox.internal.provisional.configurator.Configurator;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
-import org.eclipse.rtp.httpdeployer.bundle.BundleManageServlet;
 import org.eclipse.rtp.httpdeployer.bundle.BundleServlet;
 import org.eclipse.rtp.httpdeployer.feature.FeatureManager;
 import org.eclipse.rtp.httpdeployer.feature.FeatureServlet;
@@ -25,7 +24,6 @@ import org.osgi.service.http.NamespaceException;
 public class HttpDeployerComponent {
 
 	public static final String ALIAS_BUNDLE = "/bundle"; //$NON-NLS-N$
-	public static final String ALIAS_BUNDLE_MANAGE = "/bundle/manage"; //$NON-NLS-N$
 	public static final String ALIAS_REPOSITORY = "/repository"; //$NON-NLS-N$
 	public static final String ALIAS_FEATURE = "/feature"; //$NON-NLS-N$
 	public static final String ALIAS_SYSTEM = "/system"; //$NON-NLS-N$
@@ -69,15 +67,13 @@ public class HttpDeployerComponent {
 
 		BundleServlet bundleServlet = new BundleServlet();
 		RepositoryServlet repositoryServlet = new RepositoryServlet(repositoryManager);
-		FeatureServlet featureServlet = new FeatureServlet(featureManager);
+		FeatureServlet featureServlet = new FeatureServlet(featureManager, repositoryManager);
 		SystemServlet systemServlet = new SystemServlet();
-		BundleManageServlet bundleManageServlet = new BundleManageServlet();
 
 		httpService.registerServlet(ALIAS_BUNDLE, bundleServlet, null, null);
 		httpService.registerServlet(ALIAS_REPOSITORY, repositoryServlet, null, null);
 		httpService.registerServlet(ALIAS_FEATURE, featureServlet, null, null);
 		httpService.registerServlet(ALIAS_SYSTEM, systemServlet, null, null);
-		httpService.registerServlet(ALIAS_BUNDLE_MANAGE, bundleManageServlet, null, null);
 	}
 
 	protected void shutdownService() {
@@ -85,6 +81,5 @@ public class HttpDeployerComponent {
 		httpService.unregister(ALIAS_REPOSITORY);
 		httpService.unregister(ALIAS_FEATURE);
 		httpService.unregister(ALIAS_SYSTEM);
-		httpService.unregister(ALIAS_BUNDLE_MANAGE);
 	}
 }

@@ -12,6 +12,10 @@ public final class CommonConstants {
 	public static final String RESPONSE_CONTENT_TYPE = "text/xml"; //$NON-NLS-N$
 	public static final String DIR_SEPARATOR = "/"; //$NON-NLS-N$
 	
+	public enum Action {
+		START, STOP, INSTALL, UNINSTALL, ADD, REMOVE
+	}
+	
 	private CommonConstants() {
 	  // prevent instantiation
 	}

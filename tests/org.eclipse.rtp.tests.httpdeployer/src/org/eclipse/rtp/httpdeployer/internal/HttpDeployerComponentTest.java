@@ -61,15 +61,11 @@ public class HttpDeployerComponentTest {
 				any(HttpContext.class));
 		verify(service).registerServlet(eq(HttpDeployerComponent.ALIAS_SYSTEM), any(Servlet.class), any(Dictionary.class),
 				any(HttpContext.class));
-		verify(service).registerServlet(eq(HttpDeployerComponent.ALIAS_BUNDLE_MANAGE), any(Servlet.class), any(Dictionary.class),
-				any(HttpContext.class));
-
 		assertEquals(configurator, component.configurator);
 
 		component.shutdownService();
 		verify(service).unregister(HttpDeployerComponent.ALIAS_BUNDLE);
 		verify(service).unregister(HttpDeployerComponent.ALIAS_REPOSITORY);
-		verify(service).unregister(HttpDeployerComponent.ALIAS_BUNDLE_MANAGE);
 		verify(service).unregister(HttpDeployerComponent.ALIAS_FEATURE);
 		verify(service).unregister(HttpDeployerComponent.ALIAS_SYSTEM);
 

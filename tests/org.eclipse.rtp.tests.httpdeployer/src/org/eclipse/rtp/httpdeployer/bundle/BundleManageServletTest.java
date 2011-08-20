@@ -47,7 +47,7 @@ public class BundleManageServletTest {
 	@Mock
 	private HttpServletRequest request;
 
-	private BundleManageServlet objectUnderTest;
+	private BundleServlet objectUnderTest;
 
 	private Writer responseWriter = new StringWriter();
 
@@ -62,7 +62,7 @@ public class BundleManageServletTest {
 	@Before
 	public void setUp() throws IOException {
 		MockitoAnnotations.initMocks(this);
-		this.objectUnderTest = new MockBundleManageServlet();
+		this.objectUnderTest = new BundleServlet();
 		when(response.getWriter()).thenReturn(responsePrintWriter);
 	}
 
@@ -158,15 +158,6 @@ public class BundleManageServletTest {
 
 		return new BundleManageResponse(response.getChildText("name"), response.getChildText("action"),
 				response.getChildText("reason"));
-	}
-
-	private class MockBundleManageServlet extends BundleManageServlet {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		protected Bundle[] receiveBundlesFromContext() {
-			return new Bundle[] { BundleManageServletTest.this.bundle };
-		}
 	}
 
 	private class BundleManageResponse {

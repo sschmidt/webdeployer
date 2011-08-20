@@ -11,8 +11,8 @@ package org.eclipse.rtp.httpdeployer.repository;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.rtp.httpdeployer.internal.CommonConstants.Action;
 import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
-import org.eclipse.rtp.httpdeployer.repository.RepositoryServlet.Action;
 import org.jdom.Document;
 import org.jdom.Element;
 

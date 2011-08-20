@@ -19,6 +19,8 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.pde.internal.core.PDECoreMessages;
 import org.eclipse.pde.internal.core.exports.FeatureExportOperation;
+import org.eclipse.pde.internal.core.ifeature.IFeatureModel;
+import org.eclipse.pde.internal.core.ifeature.IFeaturePlugin;
 import org.eclipse.pde.internal.core.util.CoreUtility;
 import org.eclipse.rtp.httpdeployer.client.HttpDeployerClient;
 import org.eclipse.rtp.httpdeployer.launch.utils.ZipUtils;
@@ -36,12 +38,13 @@ public class HttpPublishOperation extends FeatureExportOperation {
 
 	@Override
 	public IStatus run(IProgressMonitor monitor) {
-		monitor.beginTask("", 40);
+		monitor.beginTask("", 80);
 		IStatus status = super.run(new SubProgressMonitor(monitor, 20));
 
 		if (status.isOK()) {
 			try {
-				uploadRepository(monitor, new SubProgressMonitor(monitor, 20));
+				installFeature(monitor, new SubProgressMonitor(monitor, 20));
+				startBundles(monitor, new SubProgressMonitor(monitor, 20));
 			} catch (HttpException e) {
 				status = new Status(IStatus.ERROR, PDECore.PLUGIN_ID,
 						PDECoreMessages.FeatureBasedExportOperation_ProblemDuringExport, e);
@@ -57,6 +60,39 @@ public class HttpPublishOperation extends FeatureExportOperation {
 		return status;
 	}
 
+	private void startBundles(IProgressMonitor monitor, SubProgressMonitor subProgressMonitor) throws IOException {
+		HttpDeployerClient service = createHttpDeployerClient();
+		for (Object item : info.getItems()) {
+			if (item instanceof IFeatureModel) {
+				IFeatureModel feature = (IFeatureModel) item;
+				IFeaturePlugin[] plugins = feature.getFeature().getPlugins();
+				for (IFeaturePlugin plugin : plugins) {
+					String version = plugin.getVersion().replaceAll("qualifier", info.getQualifier());
+					service.startPlugin(plugin.getId(), version);
+				}
+			}
+		}
+	}
+
+	private void installFeature(IProgressMonitor monitor, SubProgressMonitor subProgressMonitor) throws IOException {
+		monitor.beginTask("", 20);
+		monitor.setTaskName("Upload repository to " + info.getHttpDeployerServiceUrl());
+		repositoryZip = zipRepositoryToFile();
+		HttpDeployerClient service = createHttpDeployerClient();
+		monitor.worked(10);
+		for (Object item : info.getItems()) {
+			if (item instanceof IFeatureModel) {
+				IFeatureModel feature = (IFeatureModel) item;
+				String version = feature.getFeature().getVersion();
+				String id = feature.getFeature().getId();
+				version = version.replaceAll("qualifier", info.getQualifier());
+				service.installFeature(repositoryZip, id, version);
+			}
+		}
+		monitor.worked(10);
+		monitor.done();
+	}
+
 	private void deleteBuildFiles() {
 		CoreUtility.deleteContent(new File(info.getDestinationDirectory()));
 		if (repositoryZip != null) {
@@ -64,22 +100,15 @@ public class HttpPublishOperation extends FeatureExportOperation {
 		}
 	}
 
-	private void uploadRepository(IProgressMonitor localMonitor, IProgressMonitor monitor) throws HttpException, IOException {
-		monitor.beginTask("", 20);
-		monitor.setTaskName("Upload repository to " + info.getHttpDeployerServiceUrl());
+	private HttpDeployerClient createHttpDeployerClient() {
 		String targetUrl = info.getHttpDeployerServiceUrl();
 		HttpDeployerClient service = new HttpDeployerClient(targetUrl);
-		repositoryZip = zipRepositoryToFile();
-		monitor.worked(10);
-		service.uploadRepository(repositoryZip);
-		monitor.worked(10);
-		monitor.done();
+		return service;
 	}
 
 	private File zipRepositoryToFile() throws IOException {
 		String destinationDirectory = info.getDestinationDirectory();
 		File repository = File.createTempFile("repository", ".zip"); //$NON-NLS-N$
-		repository.deleteOnExit();
 		ZipUtils.zip(new File(destinationDirectory), repository);
 		return repository;
 	}
