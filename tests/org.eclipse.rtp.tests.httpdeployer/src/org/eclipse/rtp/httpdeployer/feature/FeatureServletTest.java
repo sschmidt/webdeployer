@@ -106,9 +106,9 @@ public class FeatureServletTest {
 		Document request = builder.build(new ByteArrayInputStream(responseWriter.toString().getBytes()));
 		Element response = (Element) request.getRootElement().getChildren().get(0);
 
-		verify(featureManager).uninstallFeature("installMock", "1.0");
+		verify(featureManager).uninstallFeature("installMock", null);
 		assertEquals(XmlConstants.XML_VALUE_STATUS_SUCCESSFUL, response.getChildText("status"));
-		assertEquals("1.0", response.getChildText("version"));
+		assertEquals("", response.getChildText("version"));
 		assertEquals("installMock", response.getChildText("name"));
 	}
 }

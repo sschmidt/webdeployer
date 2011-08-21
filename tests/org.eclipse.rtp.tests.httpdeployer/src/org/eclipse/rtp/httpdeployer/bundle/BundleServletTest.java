@@ -111,11 +111,10 @@ public class BundleServletTest {
 		return children;
 	}
 
-	private class MockBundleServlet extends BundleServlet {
+	public class MockBundleServlet extends BundleServlet {
 		private static final long serialVersionUID = 1L;
 
-		// FIXME
-		protected Bundle[] receiveBundlesFromContext() {
+		protected Bundle[] receiveBundles() {
 			Bundle mockActiveBundle = mock(Bundle.class);
 			when(mockActiveBundle.getState()).thenReturn(Bundle.ACTIVE);
 			when(mockActiveBundle.getVersion()).thenReturn(new Version(0, 0, 0));

@@ -113,10 +113,8 @@ public class RepositoryServletTest {
 		SAXBuilder builder = new SAXBuilder();
 		Document request = builder.build(new ByteArrayInputStream(responseWriter.toString().getBytes()));
 		Element repo = (Element) request.getRootElement().getChildren().get(0);
-		assertEquals(TEST_REPOSITORY_URI, repo.getChildText("uri"));
+		assertEquals("not an uri", repo.getChildText("uri"));
 		assertEquals("failed", repo.getChildText("status"));
-
-		verify(repoManagerMock).removeRepository(new URI(TEST_REPOSITORY_URI));
 	}
 
 	@Test

@@ -9,7 +9,6 @@
 package org.eclipse.rtp.httpdeployer.internal;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,9 +23,6 @@ import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.XMLOutputter;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 
 public class HttpDeployerUtils {
 
@@ -34,36 +30,6 @@ public class HttpDeployerUtils {
 		// prevent instantiation
 	}
 
-	public static Bundle[] receiveBundles() {
-		Bundle currentBundle = FrameworkUtil.getBundle(HttpDeployerUtils.class);
-		BundleContext context = currentBundle.getBundleContext();
-		Bundle[] bundles = context.getBundles();
-		return bundles;
-	}
-
-	public static Bundle[] receiveBundles(int requestType) {
-		Bundle[] bundles = HttpDeployerUtils.receiveBundles();
-
-		List<Bundle> validBundles = new ArrayList<Bundle>();
-		for (Bundle bundle : bundles) {
-			if (bundle.getState() == requestType || requestType == 0) {
-				validBundles.add(bundle);
-			}
-		}
-
-		return validBundles.toArray(new Bundle[0]);
-	}
-
-	public static Bundle searchBundle(String searchedBundle) {
-		Bundle[] bundles = receiveBundles();
-		for (Bundle bundle : bundles) {
-			if (bundle.getSymbolicName().equalsIgnoreCase(searchedBundle)) {
-				return bundle;
-			}
-		}
-
-		return null;
-	}
 
 	public static Document parseXmlRequest(HttpServletRequest request) throws JDOMException, IOException {
 		SAXBuilder builder = new SAXBuilder();

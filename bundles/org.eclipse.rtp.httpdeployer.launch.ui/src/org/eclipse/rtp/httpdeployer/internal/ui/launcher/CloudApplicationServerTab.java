@@ -74,8 +74,8 @@ public class CloudApplicationServerTab extends AbstractLaunchConfigurationTab {
 
 	@Override
 	public void setDefaults(ILaunchConfigurationWorkingCopy rootConfiguration) {
-		CloudApplicationLaunchConfig config = new CloudApplicationLaunchConfig(rootConfiguration);
-		config.setServerUri("http://localhost:8080/"); // FIXME: temp
+		//CloudApplicationLaunchConfig config = new CloudApplicationLaunchConfig(rootConfiguration);
+		//config.setServerUri("http://localhost:8080/");
 	}
 
 	@Override

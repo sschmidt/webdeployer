@@ -12,21 +12,13 @@ import javax.servlet.ServletException;
 
 import org.eclipse.equinox.internal.provisional.configurator.Configurator;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
-import org.eclipse.rtp.httpdeployer.bundle.BundleServlet;
-import org.eclipse.rtp.httpdeployer.feature.FeatureManager;
-import org.eclipse.rtp.httpdeployer.feature.FeatureServlet;
-import org.eclipse.rtp.httpdeployer.repository.RepositoryManager;
-import org.eclipse.rtp.httpdeployer.repository.RepositoryServlet;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
 @SuppressWarnings("restriction")
 public class HttpDeployerComponent {
 
-	public static final String ALIAS_BUNDLE = "/bundle"; //$NON-NLS-N$
-	public static final String ALIAS_REPOSITORY = "/repository"; //$NON-NLS-N$
-	public static final String ALIAS_FEATURE = "/feature"; //$NON-NLS-N$
-	public static final String ALIAS_SYSTEM = "/system"; //$NON-NLS-N$
+	private HttpDeployerInitializer initializer = new HttpDeployerInitializer();
 
 	protected HttpService httpService;
 	protected IProvisioningAgent provisioningAgent;
@@ -56,30 +48,14 @@ public class HttpDeployerComponent {
 		this.provisioningAgent = null;
 	}
 
-	// TODO: Spliting a method intp three optical parts is a sign for splitting the method into three
-	// methods.
 	protected void startService() throws ServletException, NamespaceException {
-	    // TODO: Just a thought, but what about creating an webdeployer app initializer that makes all
-	    // this registration and initalization stuff. This would fit more with the Single
-	    // Responsibility Principle.
-		RepositoryManager repositoryManager = new RepositoryManager(provisioningAgent);
-		FeatureManager featureManager = new FeatureManager(provisioningAgent, repositoryManager, configurator);
-
-		BundleServlet bundleServlet = new BundleServlet();
-		RepositoryServlet repositoryServlet = new RepositoryServlet(repositoryManager);
-		FeatureServlet featureServlet = new FeatureServlet(featureManager, repositoryManager);
-		SystemServlet systemServlet = new SystemServlet();
-
-		httpService.registerServlet(ALIAS_BUNDLE, bundleServlet, null, null);
-		httpService.registerServlet(ALIAS_REPOSITORY, repositoryServlet, null, null);
-		httpService.registerServlet(ALIAS_FEATURE, featureServlet, null, null);
-		httpService.registerServlet(ALIAS_SYSTEM, systemServlet, null, null);
+		initializer.setProvisioningAgent(provisioningAgent);
+		initializer.setConfigurator(configurator);
+		initializer.setHttpService(httpService);
+		initializer.init();
 	}
 
 	protected void shutdownService() {
-		httpService.unregister(ALIAS_BUNDLE);
-		httpService.unregister(ALIAS_REPOSITORY);
-		httpService.unregister(ALIAS_FEATURE);
-		httpService.unregister(ALIAS_SYSTEM);
+		initializer.unregister();
 	}
 }

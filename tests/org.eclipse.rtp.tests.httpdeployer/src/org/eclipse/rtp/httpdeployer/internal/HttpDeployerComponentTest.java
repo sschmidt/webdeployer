@@ -53,21 +53,21 @@ public class HttpDeployerComponentTest {
 		component.setConfigurator(configurator);
 		component.startService();
 
-		verify(service).registerServlet(eq(HttpDeployerComponent.ALIAS_REPOSITORY), any(Servlet.class), any(Dictionary.class),
+		verify(service).registerServlet(eq(HttpDeployerInitializer.ALIAS_REPOSITORY), any(Servlet.class), any(Dictionary.class),
 				any(HttpContext.class));
-		verify(service).registerServlet(eq(HttpDeployerComponent.ALIAS_BUNDLE), any(Servlet.class), any(Dictionary.class),
+		verify(service).registerServlet(eq(HttpDeployerInitializer.ALIAS_BUNDLE), any(Servlet.class), any(Dictionary.class),
 				any(HttpContext.class));
-		verify(service).registerServlet(eq(HttpDeployerComponent.ALIAS_FEATURE), any(Servlet.class), any(Dictionary.class),
+		verify(service).registerServlet(eq(HttpDeployerInitializer.ALIAS_FEATURE), any(Servlet.class), any(Dictionary.class),
 				any(HttpContext.class));
-		verify(service).registerServlet(eq(HttpDeployerComponent.ALIAS_SYSTEM), any(Servlet.class), any(Dictionary.class),
+		verify(service).registerServlet(eq(HttpDeployerInitializer.ALIAS_SYSTEM), any(Servlet.class), any(Dictionary.class),
 				any(HttpContext.class));
 		assertEquals(configurator, component.configurator);
 
 		component.shutdownService();
-		verify(service).unregister(HttpDeployerComponent.ALIAS_BUNDLE);
-		verify(service).unregister(HttpDeployerComponent.ALIAS_REPOSITORY);
-		verify(service).unregister(HttpDeployerComponent.ALIAS_FEATURE);
-		verify(service).unregister(HttpDeployerComponent.ALIAS_SYSTEM);
+		verify(service).unregister(HttpDeployerInitializer.ALIAS_BUNDLE);
+		verify(service).unregister(HttpDeployerInitializer.ALIAS_REPOSITORY);
+		verify(service).unregister(HttpDeployerInitializer.ALIAS_FEATURE);
+		verify(service).unregister(HttpDeployerInitializer.ALIAS_SYSTEM);
 
 		component.unsetHttpService(service);
 		component.unsetProvisioningAgent(agent);

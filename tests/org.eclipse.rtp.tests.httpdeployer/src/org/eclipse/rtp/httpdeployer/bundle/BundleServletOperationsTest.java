@@ -9,9 +9,9 @@
 package org.eclipse.rtp.httpdeployer.bundle;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -36,8 +36,7 @@ import org.mockito.MockitoAnnotations;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 
-public class BundleManageServletTest {
-
+public class BundleServletOperationsTest {
 	@Mock
 	private Bundle bundle;
 
@@ -62,7 +61,7 @@ public class BundleManageServletTest {
 	@Before
 	public void setUp() throws IOException {
 		MockitoAnnotations.initMocks(this);
-		this.objectUnderTest = new BundleServlet();
+		this.objectUnderTest = new MockBundleServlet();
 		when(response.getWriter()).thenReturn(responsePrintWriter);
 	}
 
@@ -70,6 +69,8 @@ public class BundleManageServletTest {
 	public void startUnknownBundleTest() throws IOException, ServletException, JDOMException {
 		when(bundle.getSymbolicName()).thenReturn("bundle1");
 		when(request.getReader()).thenReturn(new BufferedReader(new StringReader(VALID_START_REQUEST)));
+		// return stupid http method to break multiform-check in this test
+		when(request.getMethod()).thenReturn("fooo");
 
 		objectUnderTest.doPost(request, response);
 
@@ -83,6 +84,8 @@ public class BundleManageServletTest {
 	public void startBundleTest() throws IOException, ServletException, JDOMException, BundleException {
 		when(bundle.getSymbolicName()).thenReturn("bundle");
 		when(request.getReader()).thenReturn(new BufferedReader(new StringReader(VALID_START_REQUEST)));
+		// return stupid http method to break multiform-check in this test
+		when(request.getMethod()).thenReturn("fooo");
 
 		objectUnderTest.doPost(request, response);
 
@@ -98,6 +101,8 @@ public class BundleManageServletTest {
 		when(bundle.getSymbolicName()).thenReturn("bundle");
 		doThrow(new BundleException("fancy exception")).when(bundle).start();
 		when(request.getReader()).thenReturn(new BufferedReader(new StringReader(VALID_START_REQUEST)));
+		// return stupid http method to break multiform-check in this test
+		when(request.getMethod()).thenReturn("fooo");
 
 		objectUnderTest.doPost(request, response);
 
@@ -112,6 +117,8 @@ public class BundleManageServletTest {
 	public void stopBundleTest() throws IOException, ServletException, JDOMException, BundleException {
 		when(bundle.getSymbolicName()).thenReturn("bundle");
 		when(request.getReader()).thenReturn(new BufferedReader(new StringReader(VALID_STOP_REQUEST)));
+		// return stupid http method to break multiform-check in this test
+		when(request.getMethod()).thenReturn("fooo");
 
 		objectUnderTest.doPost(request, response);
 
@@ -139,6 +146,8 @@ public class BundleManageServletTest {
 	@Test
 	public void deleteInvalidRequestTest() throws IOException, ServletException, JDOMException, BundleException {
 		when(request.getReader()).thenReturn(new BufferedReader(new StringReader("according to jim")));
+		// return stupid http method to break multiform-check in this test
+		when(request.getMethod()).thenReturn("fooo");
 		objectUnderTest.doDelete(request, response);
 		verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST);
 	}
@@ -146,6 +155,9 @@ public class BundleManageServletTest {
 	@Test
 	public void startInvalidRequestTest() throws IOException, ServletException, JDOMException, BundleException {
 		when(request.getReader()).thenReturn(new BufferedReader(new StringReader("according to jim")));
+		// return stupid http method to break multiform-check in this test
+		when(request.getMethod()).thenReturn("fooo");
+
 		objectUnderTest.doPost(request, response);
 		verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST);
 	}
@@ -184,4 +196,13 @@ public class BundleManageServletTest {
 			return name;
 		}
 	}
+
+	public class MockBundleServlet extends BundleServlet {
+		private static final long serialVersionUID = 1L;
+
+		protected Bundle[] receiveBundles() {
+			return new Bundle[] { bundle };
+		}
+	}
+
 }
