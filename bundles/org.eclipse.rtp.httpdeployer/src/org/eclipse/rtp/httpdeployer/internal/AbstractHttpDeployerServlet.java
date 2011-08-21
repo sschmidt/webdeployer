@@ -16,7 +16,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.eclipse.rtp.httpdeployer.internal.CommonConstants.Action;
 import org.jdom.Document;
+import org.jdom.Element;
 import org.jdom.JDOMException;
 
 public abstract class AbstractHttpDeployerServlet extends HttpServlet {
@@ -58,6 +60,23 @@ public abstract class AbstractHttpDeployerServlet extends HttpServlet {
 		HttpDeployerUtils.outputDocument(response, responseDocument);
 	}
 
+	protected Document parseRequest(Document request, String searchedElement, Action action) {
+		Element rootElement = request.getRootElement();
+		RequestResults result = new RequestResults();
+
+		for (Object child : rootElement.getChildren()) {
+			if (child instanceof Element) {
+				Element currentElement = (Element) child;
+				if (currentElement.getName().equals(searchedElement)) {
+					handleOperation(result, currentElement, action);
+				}
+			}
+		}
+
+		return result.getDocument();
+	}
+
+	public abstract void handleOperation(RequestResults result, Element currentElement, Action action);
 
 	public abstract Document parseDeleteRequest(Document requestDocument);
 

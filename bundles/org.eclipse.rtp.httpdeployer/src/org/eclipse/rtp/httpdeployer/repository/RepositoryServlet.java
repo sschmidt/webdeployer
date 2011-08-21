@@ -22,6 +22,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.eclipse.rtp.httpdeployer.internal.AbstractHttpDeployerServlet;
 import org.eclipse.rtp.httpdeployer.internal.CommonConstants.Action;
 import org.eclipse.rtp.httpdeployer.internal.HttpDeployerUtils;
+import org.eclipse.rtp.httpdeployer.internal.RequestResults;
 import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -51,7 +52,7 @@ public class RepositoryServlet extends AbstractHttpDeployerServlet {
 
 	@Override
 	public Document parseMultipartPostRequest(HttpServletRequest req) throws FileUploadException, IOException {
-		RepositoryModificationResult result = new RepositoryModificationResult();
+		RequestResults result = new RequestResults();
 		List<FileItem> files = HttpDeployerUtils.parseMultipartRequest(req);
 
 		if (files.size() != 1) {
@@ -60,9 +61,10 @@ public class RepositoryServlet extends AbstractHttpDeployerServlet {
 
 		try {
 			InputStream repository = files.get(0).getInputStream();
-			result.addSuccess(repositoryManager.addRepository(repository).toString(), Action.ADD);
+			result.addResult(new RepositoryModificationResult(repositoryManager.addRepository(repository).toString(), null,
+					Action.ADD));
 		} catch (InvalidRepositoryException e) {
-			result.addFailure("local", e.getMessage(), Action.ADD);
+			result.addResult(new RepositoryModificationResult("local", e.getMessage(), Action.ADD));
 		}
 
 		// delete temporary files
@@ -75,36 +77,25 @@ public class RepositoryServlet extends AbstractHttpDeployerServlet {
 
 	@Override
 	public Document parseDeleteRequest(Document request) {
-		return parseXmlRequest(request, Action.REMOVE);
+		return parseRequest(request, XmlConstants.XML_ELEMENT_REPOSITORY, Action.REMOVE);
 	}
 
 	@Override
 	public Document parsePostRequest(Document request) {
-		return parseXmlRequest(request, Action.ADD);
+		return parseRequest(request, XmlConstants.XML_ELEMENT_REPOSITORY, Action.ADD);
 	}
 
-	private Document parseXmlRequest(Document request, Action action) {
-		Element rootElement = request.getRootElement();
-		RepositoryModificationResult result = new RepositoryModificationResult();
-
-		for (Object child : rootElement.getChildren()) {
-			if (child instanceof Element) {
-				Element currentElement = (Element) child;
-				if (currentElement.getName().equals(XmlConstants.XML_ELEMENT_REPOSITORY)) {
-					String repositoryPath = currentElement.getChildText(XmlConstants.XML_ELEMENT_URI);
-					try {
-						URI repository = new URI(repositoryPath);
-						performRepositoryAction(repository, action);
-						result.addSuccess(repositoryPath, action);
-					} catch (URISyntaxException e) {
-						// TODO: Not tested
-						result.addFailure(repositoryPath, e.getMessage(), action);
-					}
-				}
-			}
+	@Override
+	public void handleOperation(RequestResults result, Element currentElement, Action action) {
+		String repositoryPath = currentElement.getChildText(XmlConstants.XML_ELEMENT_URI);
+		try {
+			URI repository = new URI(repositoryPath);
+			performRepositoryAction(repository, action);
+			result.addResult(new RepositoryModificationResult(repositoryPath, null, action));
+		} catch (URISyntaxException e) {
+			// TODO: Not tested
+			result.addResult(new RepositoryModificationResult(repositoryPath, e.getMessage(), action));
 		}
-
-		return result.getDocument();
 	}
 
 	private void performRepositoryAction(URI repository, Action action) {

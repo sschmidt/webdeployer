@@ -8,60 +8,35 @@
  ******************************************************************************/
 package org.eclipse.rtp.httpdeployer.repository;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.rtp.httpdeployer.internal.CommonConstants.Action;
+import org.eclipse.rtp.httpdeployer.internal.IModificationResult;
 import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
-import org.jdom.Document;
 import org.jdom.Element;
 
-public  class RepositoryModificationResult {
-	private final List<SingleRepositoryModificationResult> results = new ArrayList<SingleRepositoryModificationResult>();
+public class RepositoryModificationResult implements IModificationResult {
 
-	public Document getDocument() {
-		Element root = new Element(XmlConstants.XML_ELEMENT_REPOSITORIES);
-		for (SingleRepositoryModificationResult result : results) {
-			root.addContent(result.getDocument());
-		}
+	private final Action action;
+	private final String repository;
+	private final String reason;
 
-		return new Document(root);
+	public RepositoryModificationResult(String repository, String reason, Action action) {
+		this.repository = repository;
+		this.reason = reason;
+		this.action = action;
 	}
 
-	public void addSuccess(String repository, Action action) {
-		results.add(new SingleRepositoryModificationResult(repository, null, action));
-	}
-
-	public void addFailure(String repository, String reason, Action action) {
-		results.add(new SingleRepositoryModificationResult(repository, reason, action));
-	}
-
-	private class SingleRepositoryModificationResult {
-
-		private final Action action;
-		private final String repository;
-		private final String reason;
-
-		private SingleRepositoryModificationResult(String repository, String reason, Action action) {
-			this.repository = repository;
-			this.reason = reason;
-			this.action = action;
+	public Element getDocument() {
+		Element xmlResult = new Element(XmlConstants.XML_ELEMENT_REPOSITORY);
+		xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_URI).addContent(repository));
+		xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_ACTION).addContent(action.toString()));
+		if (reason == null) {
+			xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_STATUS)
+					.addContent(XmlConstants.XML_VALUE_STATUS_SUCCESSFUL));
+		} else {
+			xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_STATUS).addContent(XmlConstants.XML_VALUE_STATUS_FAILED));
+			xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_REASON).addContent(reason));
 		}
 
-		public Element getDocument() {
-			Element xmlResult = new Element(XmlConstants.XML_ELEMENT_REPOSITORY);
-			xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_URI).addContent(repository));
-			xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_ACTION).addContent(action.toString()));
-			if (reason == null) {
-				xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_STATUS)
-						.addContent(XmlConstants.XML_VALUE_STATUS_SUCCESSFUL));
-			} else {
-				xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_STATUS)
-						.addContent(XmlConstants.XML_VALUE_STATUS_FAILED));
-				xmlResult.addContent(new Element(XmlConstants.XML_ELEMENT_REASON).addContent(reason));
-			}
-
-			return xmlResult;
-		}
+		return xmlResult;
 	}
 }

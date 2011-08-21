@@ -20,6 +20,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.eclipse.rtp.httpdeployer.internal.AbstractHttpDeployerServlet;
 import org.eclipse.rtp.httpdeployer.internal.CommonConstants.Action;
 import org.eclipse.rtp.httpdeployer.internal.HttpDeployerUtils;
+import org.eclipse.rtp.httpdeployer.internal.RequestResults;
 import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
 import org.eclipse.rtp.httpdeployer.repository.RepositoryManager;
 import org.jdom.Document;
@@ -40,12 +41,12 @@ public class FeatureServlet extends AbstractHttpDeployerServlet {
 
 	@Override
 	public Document parsePostRequest(Document requestDocument) {
-		return parseRequest(requestDocument, Action.INSTALL);
+		return parseRequest(requestDocument, XmlConstants.XML_ELEMENT_FEATURE, Action.INSTALL);
 	}
 
 	@Override
 	public Document parseDeleteRequest(Document requestDocument) {
-		return parseRequest(requestDocument, Action.UNINSTALL);
+		return parseRequest(requestDocument, XmlConstants.XML_ELEMENT_FEATURE, Action.UNINSTALL);
 	}
 
 	@Override
@@ -58,7 +59,7 @@ public class FeatureServlet extends AbstractHttpDeployerServlet {
 		InputStream repository = getRepositoryFromMultipart(files);
 		repositoryManager.addRepository(repository);
 		Document feature = getFeatureRequestFromMultipart(files);
-		Document installRequest = parseRequest(feature, Action.INSTALL);
+		Document installRequest = parseRequest(feature, XmlConstants.XML_ELEMENT_FEATURE, Action.INSTALL);
 
 		return installRequest;
 	}
@@ -82,41 +83,29 @@ public class FeatureServlet extends AbstractHttpDeployerServlet {
 		}
 	}
 
-	// TODO: Three nesting levels. Maybe this method can be splitted?
-	private Document parseRequest(Document request, Action action) {
-		FeatureModificationResult result = new FeatureModificationResult();
-		Element rootElement = request.getRootElement();
-
-		for (Object child : rootElement.getChildren()) {
-			if (child instanceof Element) {
-				Element currentElement = (Element) child;
-				if (currentElement.getName().equals(XmlConstants.XML_ELEMENT_FEATURE)) {
-					String name = currentElement.getChildText(XmlConstants.XML_ELEMENT_NAME);
-					String version = currentElement.getChildText(XmlConstants.XML_ELEMENT_VERSION);
-					if (action == Action.UNINSTALL) {
-						version = null;
-					}
-
-					handleOperation(result, name, version, action);
-				}
-			}
+	@Override
+	public void handleOperation(RequestResults result, Element currentElement, Action action) {
+		String name = currentElement.getChildText(XmlConstants.XML_ELEMENT_NAME);
+		String version = currentElement.getChildText(XmlConstants.XML_ELEMENT_VERSION);
+		if (action == Action.UNINSTALL) {
+			version = null;
 		}
 
-		return result.getDocument();
+		handleOperation(result, name, version, action);
 	}
 
-	private void handleOperation(FeatureModificationResult result, String name, String version, Action action) {
+	private void handleOperation(RequestResults result, String name, String version, Action action) {
 		try {
 			if (action.equals(Action.INSTALL)) {
 				featureManager.installFeature(name, version);
-				result.addSuccess(name, version, action);
+				result.addResult(new FeatureModificationResult(name, version, action));
 			} else if (action.equals(Action.UNINSTALL)) {
 				featureManager.uninstallFeature(name, version);
-				result.addSuccess(name, version, action);
+				result.addResult(new FeatureModificationResult(name, version, action));
 			}
 		} catch (FeatureInstallException e) {
 			// TODO: Not tested
-			result.addFailed(name, version, action, e);
+			result.addResult(new FeatureModificationResult(name, version, action, e));
 		}
 	}
 }

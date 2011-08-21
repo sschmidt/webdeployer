@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.rtp.httpdeployer.internal.AbstractHttpDeployerServlet;
 import org.eclipse.rtp.httpdeployer.internal.CommonConstants.Action;
 import org.eclipse.rtp.httpdeployer.internal.HttpDeployerUtils;
+import org.eclipse.rtp.httpdeployer.internal.RequestResults;
 import org.eclipse.rtp.httpdeployer.internal.XmlConstants;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -54,17 +55,28 @@ public class BundleServlet extends AbstractHttpDeployerServlet {
 
 	@Override
 	public Document parseDeleteRequest(Document request) {
-		return parseRequest(request, Action.UNINSTALL);
+		return parseRequest(request, XmlConstants.XML_ELEMENT_BUNDLE, Action.UNINSTALL);
 	}
 
 	@Override
 	public Document parsePostRequest(Document request) {
-		return parseRequest(request, Action.START);
+		return parseRequest(request, XmlConstants.XML_ELEMENT_BUNDLE, Action.START);
 	}
 
 	@Override
 	public Document parseMultipartPostRequest(HttpServletRequest request) throws Exception {
 		throw new IllegalAccessException();
+	}
+
+	@Override
+	public void handleOperation(RequestResults result, Element currentElement, Action action) {
+		String name = currentElement.getChildText(XmlConstants.XML_ELEMENT_NAME);
+		String actionName = currentElement.getChildText(XmlConstants.XML_ELEMENT_ACTION);
+		if (actionName != null && actionName.equalsIgnoreCase("stop")) {
+			action = Action.STOP;
+		}
+		Bundle bundle = searchBundle(name);
+		handleOperation(result, name, bundle, action);
 	}
 
 	private Document generateBundleList(int requestType) {
@@ -79,34 +91,9 @@ public class BundleServlet extends AbstractHttpDeployerServlet {
 		return new Document(root);
 	}
 
-	// TODO: Nesting Level of three.
-	// TODO: Almost the same method exists in the RepositoryServlet. Eliminate
-	// Code Duplication?
-	private Document parseRequest(Document request, Action action) {
-		Element rootElement = request.getRootElement();
-		BundleModificationResult result = new BundleModificationResult();
-
-		for (Object child : rootElement.getChildren()) {
-			if (child instanceof Element) {
-				Element currentElement = (Element) child;
-				if (currentElement.getName().equals(XmlConstants.XML_ELEMENT_BUNDLE)) {
-					String name = currentElement.getChildText(XmlConstants.XML_ELEMENT_NAME);
-					String actionName = currentElement.getChildText(XmlConstants.XML_ELEMENT_ACTION);
-					if (actionName != null && actionName.equalsIgnoreCase("stop")) {
-						action = Action.STOP;
-					}
-					Bundle bundle = searchBundle(name);
-					handleOperation(result, name, bundle, action);
-				}
-			}
-		}
-
-		return result.getDocument();
-	}
-
-	private void handleOperation(BundleModificationResult result, String name, Bundle bundle, Action action) {
+	private void handleOperation(RequestResults result, String name, Bundle bundle, Action action) {
 		if (bundle == null) {
-			result.addFailure(name, action, "bundle not found");
+			result.addResult(new BundleModificationResult(name, action, "bundle not found"));
 		} else {
 			try {
 				switch (action) {
@@ -120,9 +107,9 @@ public class BundleServlet extends AbstractHttpDeployerServlet {
 					bundle.uninstall();
 					break;
 				}
-				result.addSuccess(name, action);
+				result.addResult(new BundleModificationResult(name, action));
 			} catch (BundleException e) {
-				result.addFailure(name, action, e.getMessage());
+				result.addResult(new BundleModificationResult(name, action, e.getMessage()));
 			}
 		}
 	}
